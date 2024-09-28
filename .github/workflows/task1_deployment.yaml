@@ -17,7 +17,7 @@ env:
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
   TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
 defaults:
-  run:
+  run-on:
     working-directory: terraform #Direction with terraform Code
 jobs:
   terraform-check:
