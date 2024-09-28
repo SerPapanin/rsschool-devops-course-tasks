@@ -1,4 +1,4 @@
-name: "Terraform action"
+ame: "Terraform action"
 on:
   push:
     branches:
@@ -13,12 +13,10 @@ env:
   TF_LOG: INFO
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-  AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
   TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
-  TERRAFORM_VERSION: 1.9.5 #${{ vars.TF_VERSION }}
-  TERRAFORM_DIR: ./terraform
+  TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
+  TERRAFORM_DIR: terraform
 jobs:
   terraform-check:
     runs-on: ubuntu-latest
@@ -26,9 +24,6 @@ jobs:
       run:
         shell: bash
         working-directory: terraform
-        #role-to-assume: ${{ secrets.AWS_ROLE }}
-        #aws-region: ${{ secrets.AWS_REGION }}
-
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -43,7 +38,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ TERRAFORM_VERSION }}
+          terraform_version: 1.9.5
 
       - name: Terraform fmt
         id: fmt
@@ -52,13 +47,10 @@ jobs:
 
       - name: Terraform Init
         id: init
-        #env:
-          #AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-          #AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
-        run: terraform init
-              -backend-config="bucket=${{ secrets.AWS_BUCKET_NAME }}"
-              -backend-config="key=${{ AWS_BUCKET_KEY_NAME }}"
-              -backend-config="region=${{ AWS_REGION }}"
+        env:
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
+        run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}" -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${AWS_REGION}"
 
       - name: Terraform Validate
         id: validate
@@ -81,32 +73,23 @@ jobs:
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             <details><summary>Validation Output</summary>
-
             \`\`\`\n
             ${{ steps.validate.outputs.stdout }}
             \`\`\`
-
             </details>
-
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
             <details><summary>Show Plan</summary>
-
             \`\`\`\n
             ${process.env.PLAN}
             \`\`\`
-
             </details>
-
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output
             })
-
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
