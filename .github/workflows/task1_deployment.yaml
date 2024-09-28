@@ -17,7 +17,7 @@ env:
   AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
   TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
-  TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
+  TERRAFORM_VERSION: 1.9.5 #${{ vars.TF_VERSION }}
   TERRAFORM_DIR: ./terraform
 jobs:
   terraform-check:
