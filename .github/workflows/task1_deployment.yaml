@@ -21,7 +21,7 @@ env:
 jobs:
   terraform-check:
     defaults:
-        working-directory: ${{ vars.TERRAFORM_DIR }}
+        working-directory: terraform
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
