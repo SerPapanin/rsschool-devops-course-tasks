@@ -21,7 +21,7 @@ env:
 jobs:
   terraform-check:
     defaults:
-        working-directory: {{ vars.TERRAFORM_DIR }}
+        working-directory: ${{ vars.TERRAFORM_DIR }}
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: {{ TERRAFORM_VERSION }}
+          terraform_version: ${{ TERRAFORM_VERSION }}
 
       - name: Terraform fmt
         id: fmt
