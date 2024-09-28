@@ -15,14 +15,13 @@ env:
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
-  TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
-defaults:
-  run-on:
-    working-directory: terraform #Direction with terraform Code
+  TERRAFORM_VERSION: 1.9.5 #${{ vars.TF_VERSION }}
+  TERRAFORM_DIR: "terraform" #Direction with terraform Code from root
+
 jobs:
   terraform-check:
-    #defaults:
-        #working-directory: terraform
+    defaults:
+        working-directory: {{ vars.TERRAFORM_DIR }}
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -37,7 +36,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.5
+          terraform_version: {{ TERRAFORM_VERSION }}
 
       - name: Terraform fmt
         id: fmt
