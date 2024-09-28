@@ -15,9 +15,7 @@ env:
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
-  TERRAFORM_VERSION: 1.9.5 #${{ vars.TF_VERSION }}
-  TERRAFORM_DIR: terraform #Direction with terraform Code from root
-
+  TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
 jobs:
   terraform-check:
     defaults:
@@ -36,7 +34,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ TERRAFORM_VERSION }}
+          terraform_version: 1.9.5
 
       - name: Terraform fmt
         id: fmt
