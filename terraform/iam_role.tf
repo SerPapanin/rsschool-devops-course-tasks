@@ -51,12 +51,12 @@ resource "aws_iam_openid_connect_provider" "github_actions_IODC_provider" {
 }
 
 # S3 bucket for testing
-resource "aws_s3_bucket" "test_s3_bucket" {
-  bucket        = "test_s3_bucket"
+resource "aws_s3_bucket" "test_s3_bucket_panin12345" {
+  bucket        = "test_s3_bucket_panin12345"
   force_destroy = true
 
   tags = {
-    Name = "test_s3_bucket"
+    Name = "test_s3_bucket_panin12345"
     Env  = "dev"
   }
 }
