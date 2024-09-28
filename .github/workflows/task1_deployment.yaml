@@ -16,9 +16,13 @@ env:
   TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
   TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
+  TERRAFORM_DIR: terraform
 jobs:
   terraform-check:
+    runs-on: ubuntu-latest
     defaults:
+      run:
+        shell: bash
         working-directory: terraform
     steps:
       - name: Git checkout
