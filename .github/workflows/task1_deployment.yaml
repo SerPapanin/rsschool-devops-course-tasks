@@ -26,8 +26,8 @@ jobs:
       run:
         shell: bash
         working-directory: terraform
-        role-to-assume: ${{ secrets.AWS_ROLE }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        #role-to-assume: ${{ secrets.AWS_ROLE }}
+        #aws-region: ${{ secrets.AWS_REGION }}
 
     steps:
       - name: Git checkout
