@@ -13,9 +13,9 @@ env:
   TF_LOG: INFO
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-  AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
-  TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
+  AWS_TF_STATE_FILE_NAME: ${{ vars.AWS_TF_STATE_FILE_NAME }}
+  #TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
   TF_VERSION: ${{ vars.TF_VERSION }}
   TERRAFORM_DIR: terraform
@@ -33,8 +33,8 @@ jobs:
       - name: Configure AWS credentials from AWS account
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHub-OIDC-TERRAFORM
 
       - name: Setup Terraform
@@ -49,12 +49,10 @@ jobs:
 
       - name: Terraform Init
         id: init
-        #env:
-          #AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-          #AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
+
         run: terraform init
               -backend-config="bucket=${{ env.AWS_BUCKET_NAME }}"
-              -backend-config="key=${{ env.AWS_BUCKET_KEY_NAME }}"
+              -backend-config="key=${{ env.AWS_TF_STATE_FILE_NAME }}"
               -backend-config="region=${{ env.AWS_REGION }}"
 
       - name: Terraform Validate
