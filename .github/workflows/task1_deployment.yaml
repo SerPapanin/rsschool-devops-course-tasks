@@ -12,13 +12,16 @@ permissions:
 env:
   TF_LOG: INFO
   AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+  TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
+  TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
+defaults:
+  working-directory: terraform #Direction with terraform Code
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: terraform
+  terraform-check:
+    #defaults:
+        #working-directory: terraform
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
