@@ -1,4 +1,4 @@
-name: "Terraform action"
+name: "Terraform GitHub action"
 on:
   push:
     branches:
@@ -13,9 +13,11 @@ env:
   TF_LOG: INFO
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+  AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
   TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
   TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
-  TERRAFORM_VERSION: ${{ vars.TF_VERSION }}
+  TF_VERSION: ${{ vars.TF_VERSION }}
   TERRAFORM_DIR: terraform
 jobs:
   terraform-check:
@@ -23,7 +25,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: terraform
+        working-directory: ${{ env.TERRAFORM_DIR }}
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
@@ -38,7 +40,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.5
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform fmt
         id: fmt
@@ -47,10 +49,13 @@ jobs:
 
       - name: Terraform Init
         id: init
-        env:
-          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-          AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
-        run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}" -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${AWS_REGION}"
+        #env:
+          #AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          #AWS_BUCKET_KEY_NAME: ${{ secrets.AWS_BUCKET_FILE_NAME }}
+        run: terraform init
+              -backend-config="bucket=${{ env.AWS_BUCKET_NAME }}"
+              -backend-config="key=${{ env.AWS_BUCKET_KEY_NAME }}"
+              -backend-config="region=${{ env.AWS_REGION }}"
 
       - name: Terraform Validate
         id: validate
