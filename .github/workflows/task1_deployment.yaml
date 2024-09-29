@@ -2,8 +2,8 @@ name: "Terraform GitHub action"
 on:
   push:
     branches:
-      #- master
-      - task_1
+      - master
+      #- task_1
   #pull_request:
 permissions:
       id-token: write # This is required for aws oidc connection
