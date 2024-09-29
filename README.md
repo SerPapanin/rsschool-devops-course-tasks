@@ -20,32 +20,32 @@ Repository folders structure:
 ### Brief files and folder stucture overview:
 
 - .github/workflows/:
-- Folder contains YAML files defining GitHub Actions workflows.
+  Folder contains YAML files defining GitHub Actions workflows.
 - screenshots/:
-- Directory contains screenshots of installed software versions and 2FA enabled on root and terraform_user accounts
+  Directory contains screenshots of installed software versions and 2FA enabled on root and terraform_user accounts
 - iam_role.tf:
-- Terraform file in which was implemented creation IAM role for GitHub Actions and Identity Provider and Trust policies for Github Actions
+  Terraform file in which was implemented creation IAM role for GitHub Actions and Identity Provider and Trust policies for Github Actions
 - provider.tf:
-- Terraform file where AWS provider was configured and described
+  Terraform file where AWS provider was configured and described
 - variables.tf:
-- This file defines the input variables for the Terraform project.
+  This file defines the input variables for the Terraform project.
 - aws_backend.conf:
-- File for configuration AWS provider to run locally: S3 and so on
+  File for configuration AWS provider to run locally: S3 and so on
 
 ### Terraform variables (variables.tf)
-_variable "aws_region"_ - default AWS region for resources creation
-_variable "githubactioniam_policies"_ - list of Github Action policies for Github Action iam_role
+- _variable "aws_region"_ - default AWS region for resources creation
+- _variable "githubactioniam_policies"_ - list of Github Action policies for Github Action iam_role
 
 
 ### GitHub variables and GitHub Secrets variables
 
-  AWS_REGION: variable, default AWS region
-  AWS_ACCOUNT_ID: secret with AWS account ID
-  AWS_BUCKET_NAME: variable, TF_STATE S3 bucket name
-  AWS_TF_STATE_FILE_NAME: variable, TF_STATE file name
-  TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: variable, GithubActionsRole name
-  TF_VERSION: variable, default TF runner version
-  TERRAFORM_DIR: variable, path to TF code dirrectory
+  - AWS_REGION: variable, default AWS region
+  - AWS_ACCOUNT_ID: secret with AWS account ID
+  - AWS_BUCKET_NAME: variable, TF_STATE S3 bucket name
+  - AWS_TF_STATE_FILE_NAME: variable, TF_STATE file name
+  - TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: variable, GithubActionsRole name
+  - TF_VERSION: variable, default TF runner version
+  - TERRAFORM_DIR: variable, path to TF code dirrectory
 
   ### How to Use
 
