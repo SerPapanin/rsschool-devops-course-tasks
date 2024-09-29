@@ -1,10 +1,9 @@
-##
 ## Task 1 documentation
 
 Repository contains the Terraform configuration files, GitHub Action yaml-files.
 
 Repository folders structure:
-├── .github
+`├── .github
 │   └── workflows
 ├── readme.md
 ├── screenshots
@@ -15,23 +14,23 @@ Repository folders structure:
     ├── aws_backend.conf
     ├── iam_role.tf
     ├── provider.tf
-    └── variables.tf
+    └── variables.tf`
 
 
 ### Brief files and folder stucture overview:
 
-.github/workflows/:
-Folder contains YAML files defining GitHub Actions workflows.
-screenshots/:
-Directory contains screenshots of installed software versions and 2FA enabled on root and terraform_user accounts
-iam_role.tf:
-Terraform file in which was implemented creation IAM role for GitHub Actions and Identity Provider and Trust policies for Github Actions
-provider.tf:
-Terraform file where AWS provider was configured and described
-variables.tf:
-This file defines the input variables for the Terraform project.
-aws_backend.conf:
-File for configuration AWS provider to run locally: S3 and so on
+- .github/workflows/:
+- Folder contains YAML files defining GitHub Actions workflows.
+- screenshots/:
+- Directory contains screenshots of installed software versions and 2FA enabled on root and terraform_user accounts
+- iam_role.tf:
+- Terraform file in which was implemented creation IAM role for GitHub Actions and Identity Provider and Trust policies for Github Actions
+- provider.tf:
+- Terraform file where AWS provider was configured and described
+- variables.tf:
+- This file defines the input variables for the Terraform project.
+- aws_backend.conf:
+- File for configuration AWS provider to run locally: S3 and so on
 
 ### Terraform variables (variables.tf)
 _variable "aws_region"_ - default AWS region for resources creation
