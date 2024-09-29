@@ -3,7 +3,7 @@
 Repository contains the Terraform configuration files, GitHub Action yaml-files.
 
 Repository folders structure:\
-`├── .github\
+├── .github\
 │   └── workflows\
 ├── readme.md\
 ├── screenshots\
@@ -14,7 +14,7 @@ Repository folders structure:\
     ├── aws_backend.conf\
     ├── iam_role.tf\
     ├── provider.tf\
-    └── variables.tf\`
+    └── variables.tf\
 
 
 ### Brief files and folder stucture overview:
@@ -51,7 +51,7 @@ Repository folders structure:\
 
 Before using need to create terraform_user in AWS with necessary credentials and AWS accesskey for this user\
 Configure AWS CLI localy to use this accesskey\
-Create S3 bucet to store TF_STATE file and this information to aws_backend.conf\
+Create S3 bucket to store TF_STATE file and add this information to aws_backend.conf\
 Initialize Terraform:\
   Run: terraform init\
 Plan and Apply Changes:\
