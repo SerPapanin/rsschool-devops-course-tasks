@@ -1,6 +1,3 @@
-provider "aws" {
-}
-
 resource "aws_iam_role" "GithubActionsRole" {
   name = "GithubActionsRole"
   managed_policy_arns = [
@@ -35,7 +32,7 @@ resource "aws_iam_role" "GithubActionsRole" {
   })
 
   tags = {
-    Project = "rs-school"
+    Name = "iam-role-GithubActionsRole"
   }
 }
 
@@ -46,17 +43,16 @@ resource "aws_iam_openid_connect_provider" "github_actions_IODC_provider" {
   thumbprint_list = ["d89e3bd43d5d909b47a18977aa9d5ce36cee184c", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
 
   tags = {
-    Project = "rs-school"
+    Name = "iodc_provider-github_action"
   }
 }
 
 # S3 bucket for testing
-resource "aws_s3_bucket" "test-s3-bucket-panin12345" {
+/*resource "aws_s3_bucket" "test-s3-bucket-panin12345" {
   bucket        = "test-s3-bucket-panin12345"
   force_destroy = true
 
   tags = {
     Name = "test-s3-bucket-panin12345"
-    Env  = "dev"
   }
-}
+}*/
