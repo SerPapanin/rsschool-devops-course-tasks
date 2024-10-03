@@ -59,3 +59,6 @@ Plan and Apply Changes:\
   Apply changes by running: terraform apply\
 Github actions:\
  Add necessary variables and secrets to Github -> Setings -> Secrets and variables -> Actions
+
+
+## Task 2 documentation

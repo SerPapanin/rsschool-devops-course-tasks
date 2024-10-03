@@ -7,5 +7,15 @@ terraform {
     }
   }
 
+provider "aws" {
+  region = vars.aws_region
+  default_tags {
+    tags = {
+      Environment = "Dev"
+      Project     = "rsschool-devops"
+      Owner       = "panin"
+    }
+}
+
   backend "s3" {}
 }
