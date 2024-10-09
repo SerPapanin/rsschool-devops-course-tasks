@@ -1,3 +1,5 @@
+#AWS terraform provider configuration
+
 terraform {
   required_providers {
     aws = {
@@ -7,15 +9,17 @@ terraform {
     }
   }
 
+  backend "s3" {}
+}
+# Provider block with default region and tags
 provider "aws" {
-  region = vars.aws_region
+  region = var.aws_region
+
   default_tags {
     tags = {
-      Environment = "Dev"
-      Project     = "rsschool-devops"
-      Owner       = "panin"
+      Environment = var.tf_env
+      Project     = var.project
+      Owner       = var.owner
     }
-}
-
-  backend "s3" {}
+  }
 }

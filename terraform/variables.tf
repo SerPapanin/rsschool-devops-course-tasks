@@ -10,8 +10,19 @@ variable "tf_env" {
   default     = "dev"
 }
 
+variable "project" {
+  description = "Project name"
+  type        = string
+  default     = "rs-school-devops"
+}
 
-variable "github_action_iam_policies" {
+variable "owner" {
+  description = "Project owner"
+  type        = string
+  default     = "panin"
+}
+
+variable "github_action_iam_policies_list" {
   description = "Github Action policies"
   type        = list(string)
   default = [
@@ -47,4 +58,18 @@ variable "azs" {
   description = "Availability Zones to use"
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b"]
+}
+
+# Public SSH key
+variable "panin_key" {
+  description = "Key pair name for SSH access to the Bastion Host"
+  default     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHWDf4OY1ZOWHMcgEvmbRJyFSzq92ZKp5HGHuX9AUsCU sergey_panin@lineate.com"
+}
+
+# List of CIDR blocks that are allowed to SSH into the Bastion Host
+# Default is empty list, which will block SSH access
+variable "allowed_ssh_bastion_cidrs" {
+  description = "List of CIDR blocks allowed to SSH into the Bastion Host"
+  type        = list(string)
+  default     = []
 }

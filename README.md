@@ -14,7 +14,7 @@ Repository folders structure:\
     ├── aws_backend.conf\
     ├── iam_role.tf\
     ├── provider.tf\
-    └── variables.tf\
+    └── variables.tf
 
 
 ### Brief files and folder stucture overview:
