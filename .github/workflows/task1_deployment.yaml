@@ -5,7 +5,8 @@ on:
       - master
       #- task_1
   pull_request:
-    - master
+    branches:
+      - master
 permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
