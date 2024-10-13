@@ -62,3 +62,30 @@ Github actions:\
 
 
 ## Task 2 documentation
+
+Before usage need set values of variables in file **ts_school.auto.tfvars**\
+AWS region for creating resources
+- aws_region = "" (default: us-east-1)\
+AZs where subnets will be spread
+- azs     = [""] (default: all AZs in region)\
+Allowed CIDRs to SSH access to bastion host
+- allowed_ssh_bastion_cidrs = [""] (Default: none)\
+Private subnets CIDRs
+- private_subnet_cidrs = ["10.0.6.0/24", "10.0.7.0/24"]\
+Public subnets CIDRs
+- public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]\
+Public SSH key pushed to instances
+- public_ssh_key = "" (Default: none)\
+Blocked CIDRs for NACL HTTP/HTTPS block
+- blocked_cidrs = [""] (Default: none)
+
+###Pipeline creates:
+- VPC in specified region.
+- Then get all AZs and spread newworks across AZs, or you can specify AZs where networks will be spread\
+- Create security groups
+- Create Internet gateway
+- Create network ACL (allow all trafic and block HTTP access for specified CIDRs)
+- Create SSM role
+- Create bastion host in first public network with SSM role assigned and SSM agent installed and assiciate security groups
+- Add routes to public network and private network. Route traffic to internet in private network through bastion host
+- Create host in private network with SSM role and SSM agent instaled
