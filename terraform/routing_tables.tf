@@ -35,7 +35,6 @@ resource "aws_route_table" "private_route_table" {
     cidr_block = "0.0.0.0/0"
     # Bastion host the network interface ID
     network_interface_id = aws_instance.bastion_host_rs_school.primary_network_interface_id
-    #instance_id = aws_instance.bastion_host_rs_school.id # Route traffic through Bastion Host
   }
 
   tags = {

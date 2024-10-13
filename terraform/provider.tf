@@ -11,7 +11,7 @@ terraform {
 
   backend "s3" {}
 }
-# Provider block with default region and tags
+# Set default region and tags
 provider "aws" {
   region = var.aws_region
 

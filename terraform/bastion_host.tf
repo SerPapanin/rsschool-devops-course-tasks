@@ -14,12 +14,12 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-resource "aws_key_pair" "panin_pub_key" {
-  key_name   = "panin-pub-key"
-  public_key = var.panin_key
+resource "aws_key_pair" "host_pub_key" {
+  key_name   = "host-pub-key"
+  public_key = var.public_ssh_key
 
   tags = {
-    Name = "Sergey Panin Generated Key"
+    Name = "Public SSH key Generated Key"
   }
 }
 
@@ -31,7 +31,7 @@ resource "aws_instance" "bastion_host_rs_school" {
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.public_subnets[0].id
   associate_public_ip_address = true
-  key_name                    = aws_key_pair.panin_pub_key.key_name
+  key_name                    = aws_key_pair.host_pub_key.key_name
   source_dest_check           = false # Disable the destination check
   # EBS volume configuration for the root volume
   root_block_device {
@@ -59,6 +59,11 @@ resource "aws_instance" "bastion_host_rs_school" {
     snap install amazon-ssm-agent --classic
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
+
+    # Install NGINX and start
+    apt-get -y install nginx
+    systemctl enable nginx
+    systemctl start nginx
 
     # Enable IP forwarding for routing
     echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf

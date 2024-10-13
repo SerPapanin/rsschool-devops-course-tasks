@@ -15,19 +15,6 @@ output "private_subnet_ids" {
   description = "The IDs of the private subnets"
   value       = [for subnet in aws_subnet.private_subnets : subnet.id]
 }
-/*
-# Output the public security group ID
-output "public_security_group_id" {
-  description = "The ID of the public security group"
-  value       = aws_security_group.public_sg.id
-}
-
-# Output the private security group ID
-output "private_security_group_id" {
-  description = "The ID of the private security group"
-  value       = aws_security_group.private_sg.id
-}
-*/
 
 # Output the Bastion Host public IP
 output "bastion_public_ip" {

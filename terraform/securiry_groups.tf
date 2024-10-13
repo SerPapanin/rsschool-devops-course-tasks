@@ -5,7 +5,7 @@ resource "aws_security_group" "bastion_host_sg" {
   lifecycle {
     create_before_destroy = true
   }
-
+  # Allow SSH access from specified CIDRs
   ingress {
     description = "Allow SSH access from specific CIDR blocks"
     from_port   = 22
@@ -20,7 +20,15 @@ resource "aws_security_group" "bastion_host_sg" {
     protocol    = "-1"                              # Allow all protocols
     cidr_blocks = [aws_vpc.rsschool_vpc.cidr_block] # Allow traffic from VPC CIDR
   }
+  # Allow HTTP access from anywhere
 
+  ingress {
+    description = "Allow HTTP access from anywhere"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Allow HTTP from anywhere
+  }
 
   egress {
     from_port   = 0
