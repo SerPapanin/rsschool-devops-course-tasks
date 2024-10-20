@@ -143,3 +143,16 @@ stream {
         }
 }
 ```
+8.  kubectl config on local machine
+
+Copied from k3s-server `/etc/rancher/k3s/k3s.yaml` to local machine `~/.kube/config`. `server` field is changed. 
+
+```yaml
+apiVersion: v1
+clusters:
+  - cluster:
+      certificate-authority-data: LRMEMMW2 # shortened for readability
+      server: https://<BASTION_HOST_IP>:8080
+    name: default
+... # shortened for readability
+```
