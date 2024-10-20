@@ -1,5 +1,5 @@
 # Create the Host in privte subnet
-
+/*
 resource "aws_instance" "private_host_rs_school" {
   ami           = data.aws_ami.ubuntu.image_id
   instance_type = "t3.micro"
@@ -32,3 +32,4 @@ resource "aws_instance" "private_host_rs_school" {
   EOF
   depends_on = [aws_instance.bastion_host_rs_school]
 }
+*/

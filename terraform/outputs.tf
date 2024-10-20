@@ -27,13 +27,13 @@ output "bastion_private_ip" {
   description = "The private IP address of the Bastion Host"
   value       = aws_instance.bastion_host_rs_school.private_ip
 }
-
+/*
 # Output the Private Host IP
 output "private_host_ip" {
   description = "The private IP address of the Bastion Host"
   value       = aws_instance.private_host_rs_school.private_ip
 }
-
+*/
 #Output ubuntu AMI
 output "ununtu_AMI" {
   value = data.aws_ami.ubuntu.image_id

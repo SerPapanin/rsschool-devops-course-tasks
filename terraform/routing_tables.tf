@@ -42,7 +42,6 @@ resource "aws_route_table" "private_route_table" {
   }
 }
 
-
 # Associate public subnets with the public route table
 resource "aws_route_table_association" "public_subnet_associations" {
   for_each       = aws_subnet.public_subnets

@@ -58,10 +58,10 @@ resource "aws_security_group" "private_hosts_sg" {
   }
 
   ingress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = [aws_vpc.rsschool_vpc.cidr_block] # Allow ping from within the VPC
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [aws_vpc.rsschool_vpc.cidr_block] # Allow all acces within VPC
   }
 
   egress {
@@ -75,5 +75,4 @@ resource "aws_security_group" "private_hosts_sg" {
     Name = "private-hosts-sg"
   }
   depends_on = [aws_security_group.bastion_host_sg] # Ensure Bastion SG is created first
-
 }
