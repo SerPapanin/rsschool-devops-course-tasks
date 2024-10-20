@@ -30,6 +30,14 @@ resource "aws_security_group" "bastion_host_sg" {
     cidr_blocks = ["0.0.0.0/0"] # Allow HTTP from anywhere
   }
 
+  ingress {
+    description = "Allow access to K3S API server"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow access through reverse proxy
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
