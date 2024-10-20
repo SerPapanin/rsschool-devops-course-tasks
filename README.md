@@ -111,7 +111,7 @@ Blocked CIDRs for NACL HTTP/HTTPS block
  ```bash
     sudo kubectl get nodes
     ```
-    Result:
+  Result:
     ```bash
     root@ip-10-0-6-109:~# kubectl get nodes
 NAME            STATUS   ROLES                  AGE   VERSION
