@@ -89,3 +89,57 @@ Blocked CIDRs for NACL HTTP/HTTPS block
 - Create bastion host in first public network with SSM role assigned and SSM agent installed and assiciate security groups
 - Add routes to public network and private network. Route traffic to internet in private network through bastion host
 - Create host in private network with SSM role and SSM agent instaled
+
+## Task 3 documentation
+## K8S cluster with [k3s](https://k3s.io/)
+
+### Istalation steps and verifications
+
+1. **On control plane check status of k3s service**
+    ```bash
+    systemctl status k3s
+    ```
+2. **Get the server token:**
+    ```bash
+    sudo cat /var/lib/rancher/k3s/server/node-token
+    ```
+3. **Install worker node and join to the cluster**
+    ```bash
+   curl -sfL https://get.k3s.io | K3S_URL=https://<master_none_IP>:6443 K3S_TOKEN=<server_token> sh -
+    ```
+4. Check the nodes list from master node
+ ```bash
+    sudo kubectl get nodes
+    ```
+    Result:
+    ```bash
+    root@ip-10-0-6-109:~# kubectl get nodes
+NAME            STATUS   ROLES                  AGE   VERSION
+ip-10-0-6-109   Ready    control-plane,master   45m   v1.30.5+k3s1
+ip-10-0-6-149   Ready    <none>                 36m   v1.30.5+k3s1
+```
+5. Deploy a Simple Workload
+
+   ```bash
+   kubectl apply -f https://k8s.io/examples/pods/simple-pod.yaml
+   ```
+6. Verify that the pod is running:
+
+   ```bash
+   kubectl get pods
+   ```
+7. For connection from local machine used NGINX reverse proxy installed on bastion host
+
+NGINX config
+```
+stream {
+        upstream api {
+                server <kube-api-server-ip>:6443;
+        }
+        server {
+                listen 8080; # this is the port exposed by nginx on your proxy server
+                proxy_pass api;
+                proxy_timeout 20s;
+        }
+}
+```
