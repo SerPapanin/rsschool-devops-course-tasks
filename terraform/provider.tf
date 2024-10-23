@@ -23,3 +23,5 @@ provider "aws" {
     }
   }
 }
+# Provider for random string generation
+provider "random" {}

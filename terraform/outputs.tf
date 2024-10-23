@@ -51,3 +51,9 @@ output "internet_gateway_id" {
   description = "The ID of the Internet Gateway"
   value       = aws_internet_gateway.igw_rs_school.id
 }
+
+# Output k3s server token
+output "generated_token" {
+  description = "Generated random token"
+  value       = random_string.k3s_token.result
+}

@@ -1,4 +1,12 @@
-# Create the EC2 control plane in privte subnet
+# Create the EC2 control plane in private subnet
+
+resource "random_string" "k3s_token" {
+  length  = 30    # Length of the random string
+  special = false # Include special characters
+  upper   = true  # Include uppercase letters
+  lower   = true  # Include lowercase letters
+}
+
 
 resource "aws_instance" "k3s_control_plane_rs_school" {
   ami           = data.aws_ami.ubuntu.image_id
@@ -29,7 +37,12 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
     # Installing k3s control plane
-    curl -sfL https://get.k3s.io | sh -
+    curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode "644" --token ${random_string.k3s_token.result} --kube-apiserver-arg "bind-address=0.0.0.0"
+    # TOKEN=$(cat /var/lib/rancher/k3s/server/node-token)
+    # MASTER_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
+    curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /var/lib/rancher/k3s/server/ip
+    # echo $TOKEN > /var/lib/rancher/k3s/server/token
+    # echo $MASTER_IP > /var/lib/rancher/k3s/server/ip
   EOF
   depends_on = [aws_instance.bastion_host_rs_school]
 }
@@ -64,6 +77,7 @@ resource "aws_instance" "k3s_worker_node01_rs_school" {
     snap install amazon-ssm-agent --classic
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
+    curl -sfL https://get.k3s.io | K3S_URL=https://${aws_instance.k3s_control_plane_rs_school.private_ip}:6443 K3S_TOKEN=${random_string.k3s_token.result} sh -
   EOF
   depends_on = [aws_instance.k3s_control_plane_rs_school]
 }
