@@ -38,11 +38,7 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
     systemctl start amazon-ssm-agent
     # Installing k3s control plane
     curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode "644" --token ${random_string.k3s_token.result} --kube-apiserver-arg "bind-address=0.0.0.0"
-    # TOKEN=$(cat /var/lib/rancher/k3s/server/node-token)
-    # MASTER_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
     curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /var/lib/rancher/k3s/server/ip
-    # echo $TOKEN > /var/lib/rancher/k3s/server/token
-    # echo $MASTER_IP > /var/lib/rancher/k3s/server/ip
   EOF
   depends_on = [aws_instance.bastion_host_rs_school]
 }
