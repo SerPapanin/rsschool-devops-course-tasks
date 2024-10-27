@@ -3,7 +3,7 @@
 # AZs where subnets will be spread
 #azs     = ["us-east-1a", "us-east-1b"]
 # Allowed CIDRs to SSH access to bastion host
-allowed_ssh_bastion_cidrs = ["95.104.117.178/32"]
+allowed_ssh_bastion_cidrs = ["95.104.117.178/32", "212.58.103.152/32"]
 # Private subnets CIDRs
 private_subnet_cidrs = ["10.0.6.0/24", "10.0.7.0/24"]
 # Public subnets CIDRs

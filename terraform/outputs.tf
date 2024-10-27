@@ -57,3 +57,9 @@ output "generated_token" {
   description = "Generated random token"
   value       = random_string.k3s_token.result
 }
+
+#Output k3s server private IP
+output "k3s_private_ip" {
+  description = "K3S server private IP address"
+  value       = aws_instance.k3s_control_plane_rs_school.private_ip
+}

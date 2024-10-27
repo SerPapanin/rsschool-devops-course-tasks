@@ -10,7 +10,7 @@ resource "random_string" "k3s_token" {
 
 resource "aws_instance" "k3s_control_plane_rs_school" {
   ami           = data.aws_ami.ubuntu.image_id
-  instance_type = "t3a.medium"
+  instance_type = "t3a.small"
   subnet_id     = aws_subnet.private_subnets[0].id
   key_name      = aws_key_pair.host_pub_key.key_name
   root_block_device {
@@ -30,21 +30,21 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
   user_data  = <<-EOF
     #!/bin/bash
     hostname bastion_host
-    apt-get update
+    apt-get update && apt-get -y upgrade
 
     # Install and start the SSM agent
     snap install amazon-ssm-agent --classic
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
     # Installing k3s control plane
-    curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode "644" --token ${random_string.k3s_token.result} --kube-apiserver-arg "bind-address=0.0.0.0"
+    curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode "644" --token ${random_string.k3s_token.result} --kube-apiserver-arg "bind-address=0.0.0.0" --tls-san ${aws_instance.bastion_host_rs_school.public_ip}
     curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /var/lib/rancher/k3s/server/ip
   EOF
   depends_on = [aws_instance.bastion_host_rs_school]
 }
 
 # Create the EC2 and install worker node in privte subnet
-
+/*
 resource "aws_instance" "k3s_worker_node01_rs_school" {
   ami           = data.aws_ami.ubuntu.image_id
   instance_type = "t3.micro"
@@ -77,3 +77,4 @@ resource "aws_instance" "k3s_worker_node01_rs_school" {
   EOF
   depends_on = [aws_instance.k3s_control_plane_rs_school]
 }
+*/

@@ -52,7 +52,7 @@ resource "aws_instance" "bastion_host_rs_school" {
   user_data = <<-EOF
     #!/bin/bash
     hostname bastion_host
-    apt-get update
+    apt-get update && apt-get upgrade -y
     apt-get install -y iptables
 
     # Install and start the SSM agent
