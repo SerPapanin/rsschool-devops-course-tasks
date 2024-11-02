@@ -16,7 +16,6 @@ Repository folders structure:\
     ├── provider.tf\
     └── variables.tf
 
-
 ### Brief files and folder stucture overview:
 
 - .github/workflows/:\
