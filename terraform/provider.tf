@@ -1,3 +1,4 @@
+#AWS terraform provider configuration
 terraform {
   required_providers {
     aws = {
@@ -9,3 +10,17 @@ terraform {
 
   backend "s3" {}
 }
+# Set default region and tags
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = {
+      Environment = var.tf_env
+      Project     = var.project
+      Owner       = var.owner
+    }
+  }
+}
+# Provider for random string generation
+provider "random" {}

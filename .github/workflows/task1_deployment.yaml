@@ -4,7 +4,9 @@ on:
     branches:
       - master
       #- task_1
-  #pull_request:
+  pull_request:
+    branches:
+      - master
 permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
@@ -117,4 +119,5 @@ jobs:
               -backend-config="region=${{ env.AWS_REGION }}"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: echo ""
+        # terraform apply -auto-approve
