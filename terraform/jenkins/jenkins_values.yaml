@@ -1,0 +1,21 @@
+controller:
+  # Setting the service type, namespace, and other configurations
+  serviceType: ClusterIP
+  servicePort: 8080
+  namespace: jenkins
+  #jenkinsUrl: "http://jenkins.local"
+  jenkinsHome: /var/jenkins_home
+
+  # Installing additional plugins
+  installPlugins:
+    - kubernetes:4295.v7fa_01b_309c95
+    - git:5.6.0
+    - configuration-as-code:1887.v9e47623cb_043
+    - workflow-aggregator:600.vb_57cdd26fdd7
+
+persistence:
+  enabled: true
+  existingClaim:
+  storageClass: jenkins-pv
+  accessMode: "ReadWriteOnce"
+  size: "2Gi"
