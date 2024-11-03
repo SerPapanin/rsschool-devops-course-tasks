@@ -70,9 +70,14 @@ resource "null_resource" "ssm_command_master_node" {
     command = <<-EOT
       aws ssm send-command \
         --instance-ids ${aws_instance.k3s_control_plane_rs_school.id} \
-        --document-name "AWS-RunShellScript" \
-        --parameters commands=["echo Hello from SSM","curl -o /tmp/test.txt https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_3/terraform/aws_backend.conf"] \
-        --comment "Running script via Terraform" \
+        --document-name "AWS-DeployJenkins" \
+        --parameters commands=[
+          "echo Hello from SSM",
+          "curl -o /tmp/deploy_jenkins.sh https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_4/terraform/jenkins/deploy_jenkins.yaml",
+          "chmod +x /tmp/deploy_jenkins.sh",
+          "/tmp/deploy_jenkins.sh"
+          ] \
+        --comment "Deploy Jenkins via Terraform" \
         --region ${var.aws_region}
     EOT
   }
