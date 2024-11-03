@@ -21,7 +21,6 @@ resource "aws_security_group" "bastion_host_sg" {
     cidr_blocks = [aws_vpc.rsschool_vpc.cidr_block] # Allow traffic from VPC CIDR
   }
   # Allow HTTP access from anywhere
-
   ingress {
     description = "Allow HTTP access from anywhere"
     from_port   = 80
@@ -29,11 +28,19 @@ resource "aws_security_group" "bastion_host_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] # Allow HTTP from anywhere
   }
+  # Allow HTTP acces to Jenkins
+  ingress {
+    description = "Allow HTTP access to Jenkins"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow HTTP from white list
+  }
 
   ingress {
     description = "Allow access to K3S API server"
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 6443
+    to_port     = 6443
     protocol    = "tcp"
     cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow access through reverse proxy
   }

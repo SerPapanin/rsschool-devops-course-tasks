@@ -1,0 +1,54 @@
+controller:
+  # Setting the service type, namespace, and other configurations
+  serviceType: ClusterIP  # or LoadBalancer if external access is needed
+  servicePort: 8080
+  namespace: jenkins
+  jenkinsUrl: "http://jenkins.local"
+  jenkinsHome: /var/jenkins_home
+
+  # Define the initial admin user and password
+  admin.username: admin
+  admin.password: adminpassword  # Replace with a strong password
+
+  # Installing additional plugins
+  installPlugins:
+    #- kubernetes:1.31.1
+    - git:5.6.0
+    - configuration-as-code:1887.v9e47623cb_043
+    - github-branch-source:1807.v50351eb_7dd13
+
+
+  # Enable JCasC for more customization (optional)
+  JCasC:
+    configScripts:
+      initialConfig: |
+        jenkins:
+          systemMessage: "Welcome to Jenkins on Kubernetes!"
+          securityRealm:
+            local:
+              allowsSignup: false
+              users:
+                - id: "admin"
+                  password: "${JENKINS_ADMIN_PASSWORD}"
+          authorizationStrategy:
+            loggedInUsersCanDoAnything:
+              allowAnonymousRead: true
+
+persistence:
+  enabled: true
+  existingClaim: jenkins-pvc
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+  namespace: jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ephemeral-ebs
+  resources:
+    requests:
+      storage: 3Gi  # Adjust size as needed

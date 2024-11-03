@@ -55,7 +55,7 @@ resource "aws_iam_role" "ssm_role_rs_school" {
   })
 
   tags = {
-    Name = "SSM Role for Bastion Host"
+    Name = "SSM Role for hosts"
   }
 }
 
@@ -70,6 +70,36 @@ resource "aws_iam_instance_profile" "bastion_ssm_profile_rs_school" {
   name = "bastion-ssm-profile-rs-school"
   role = aws_iam_role.ssm_role_rs_school.name
 }
+
+# Create a policy that allows sending SSM commands
+resource "aws_iam_policy" "ssm_send_command_policy" {
+  name        = "GitHubActionsSSMPolicy"
+  description = "Allows GitHub Actions to send SSM commands to EC2 instances"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:SendCommand",
+          "ssm:DescribeInstanceInformation",
+          "ssm:GetCommandInvocation"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+  tags = {
+    Name = "github-allow-ssm-commands"
+  }
+}
+
+# Attach the SSM Send Command Policy to the GitHub Actions Role
+resource "aws_iam_role_policy_attachment" "github_actions_policy_attachment" {
+  role       = aws_iam_role.GithubActionsRole.name
+  policy_arn = aws_iam_policy.ssm_send_command_policy.arn
+}
+
 
 # S3 bucket for testing
 /*resource "aws_s3_bucket" "test-s3-bucket-panin12345" {

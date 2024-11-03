@@ -20,27 +20,62 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
     throughput  = 125   # You can specify throughput in MiB/s, minimum is 125 for gp3
   }
   iam_instance_profile = aws_iam_instance_profile.bastion_ssm_profile_rs_school.name
-
-  security_groups = [aws_security_group.private_hosts_sg.id]
+  security_groups      = [aws_security_group.private_hosts_sg.id]
 
   tags = {
     Name = "K3S control plane rs-school"
   }
-
+  # Ignore changes to security groups and tags
+  lifecycle {
+    ignore_changes = [
+      security_groups,
+      tags
+    ]
+  }
   user_data  = <<-EOF
     #!/bin/bash
-    hostname bastion_host
     apt-get update && apt-get -y upgrade
+    apt-get install awscli
+
+    #Set default region to AWS cli
+    mkdir -p ~/.aws
+    echo "[default]" > ~/.aws/config
+    echo "region = ${var.aws_region}" >> ~/.aws/config
 
     # Install and start the SSM agent
     snap install amazon-ssm-agent --classic
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
+
     # Installing k3s control plane
     curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode "644" --token ${random_string.k3s_token.result} --kube-apiserver-arg "bind-address=0.0.0.0" --tls-san ${aws_instance.bastion_host_rs_school.public_ip}
     curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /var/lib/rancher/k3s/server/ip
+    #Install HELM
+    snap install helm --classic
+    helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+    helm repo add jenkins https://charts.jenkins.io
+    helm repo update
+    helm install aws-ebs-csi-driver --namespace kube-system aws-ebs-csi-driver/aws-ebs-csi-driver
   EOF
   depends_on = [aws_instance.bastion_host_rs_school]
+}
+
+
+# Null resource to run the SSM send-command
+resource "null_resource" "ssm_command_master_node" {
+  # Only run this command after the EC2 instance is created
+  depends_on = [aws_instance.k3s_control_plane_rs_school]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      aws ssm send-command \
+        --instance-ids ${aws_instance.k3s_control_plane_rs_school.id} \
+        --document-name "AWS-RunShellScript" \
+        --parameters commands=["echo Hello from SSM","curl -o /tmp/test.txt https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_3/terraform/aws_backend.conf"] \
+        --comment "Running script via Terraform" \
+        --region ${var.aws_region}
+    EOT
+  }
 }
 
 # Create the EC2 and install worker node in privte subnet
