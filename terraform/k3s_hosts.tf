@@ -35,7 +35,7 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
   user_data  = <<-EOF
     #!/bin/bash
     apt-get update && apt-get -y upgrade
-    apt-get install awscli
+    apt-get install awscli git
 
     #Set default region to AWS cli
     mkdir -p ~/.aws
@@ -52,10 +52,6 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
     curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /var/lib/rancher/k3s/server/ip
     #Install HELM
     snap install helm --classic
-    helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-    helm repo add jenkins https://charts.jenkins.io
-    helm repo update
-    helm install aws-ebs-csi-driver --namespace kube-system aws-ebs-csi-driver/aws-ebs-csi-driver
   EOF
   depends_on = [aws_instance.bastion_host_rs_school]
 }
@@ -70,14 +66,9 @@ resource "null_resource" "ssm_command_master_node" {
     command = <<-EOT
       aws ssm send-command \
         --instance-ids ${aws_instance.k3s_control_plane_rs_school.id} \
-        --document-name "AWS-DeployJenkins" \
-        --parameters commands=[
-          "echo Hello from SSM",
-          "curl -o /tmp/deploy_jenkins.sh https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_4/terraform/jenkins/deploy_jenkins.yaml",
-          "chmod +x /tmp/deploy_jenkins.sh",
-          "/tmp/deploy_jenkins.sh"
-          ] \
-        --comment "Deploy Jenkins via Terraform" \
+        --document-name "AWS-RunShellScript" \
+        --parameters commands=["curl -o /tmp/deploy_jenkins.sh https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_4/terraform/jenkins/deploy_jenkins.sh","chmod +x /tmp/deploy_jenkins.sh","/tmp/deploy_jenkins.sh"] \
+        --comment "Deploy Jenkins via TF" \
         --region ${var.aws_region}
     EOT
   }
