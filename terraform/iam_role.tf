@@ -81,7 +81,7 @@ resource "aws_iam_policy" "ssm_send_command_policy" {
       {
         Effect = "Allow",
         Action = [
-          #"ssm:*",
+          "ssm:*",
           "ssm:SendCommand",
           "ssm:PutParameter",
           "ssm:DescribeDocument",
