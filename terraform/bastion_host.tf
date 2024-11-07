@@ -82,8 +82,15 @@ resource "aws_instance" "bastion_host_rs_school" {
     iptables -t nat -A POSTROUTING -o ens5 -s 0.0.0.0/0 -j MASQUERADE
   EOF
 }
+# Create an instance profile for the Bastion Host
+resource "aws_iam_instance_profile" "bastion_ssm_profile_rs_school" {
+  name = "bastion-ssm-profile-rs-school"
+  role = aws_iam_role.ssm_role_rs_school.name
+}
+
+
 # Wait until instance health check is passed
-resource "null_resource" "wait_for_health_check" {
+resource "null_resource" "wait_for_health_check_bastion" {
   depends_on = [aws_instance.bastion_host_rs_school]
 
   provisioner "local-exec" {
@@ -173,5 +180,5 @@ resource "aws_ssm_association" "apply_nginx_conf_association" {
     key    = "InstanceIds"
     values = [aws_instance.bastion_host_rs_school.id]
   }
-  depends_on = [null_resource.wait_for_health_check]
+  depends_on = [null_resource.wait_for_health_check_bastion]
 }

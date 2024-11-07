@@ -59,16 +59,10 @@ resource "aws_iam_role" "ssm_role_rs_school" {
   }
 }
 
-# Attach AmazonSSMManagedInstanceCore policy to the role
+# Attach AmazonSSMManagedInstanceCore policy to the instance role
 resource "aws_iam_role_policy_attachment" "ssm_role_policy_rs_school" {
   role       = aws_iam_role.ssm_role_rs_school.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-# Create an instance profile for the Bastion Host
-resource "aws_iam_instance_profile" "bastion_ssm_profile_rs_school" {
-  name = "bastion-ssm-profile-rs-school"
-  role = aws_iam_role.ssm_role_rs_school.name
 }
 
 # Create a policy that allows sending SSM commands
@@ -81,7 +75,7 @@ resource "aws_iam_policy" "ssm_send_command_policy" {
       {
         Effect = "Allow",
         Action = [
-          "ssm:*",
+          #"ssm:*",
           "ssm:SendCommand",
           "ssm:PutParameter",
           "ssm:DescribeDocument",
