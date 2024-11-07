@@ -32,6 +32,7 @@ variable "github_action_iam_policies_list" {
     "arn:aws:iam::aws:policy/IAMFullAccess",
     "arn:aws:iam::aws:policy/AmazonVPCFullAccess",
     "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
+    "arn:aws:iam::aws:policy/AmazonSSMFullAccess",
     "arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess"
   ]
 }
