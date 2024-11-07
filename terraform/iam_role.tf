@@ -84,7 +84,6 @@ resource "aws_iam_policy" "ssm_send_command_policy" {
           "ssm:GetDocument",
           "ssm:DescribeDocumentPermission",
           "ssm:GetCommandInvocation"
-          "ssm:PutParameter"
         ],
         Resource = "*"
       }
