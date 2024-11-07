@@ -64,12 +64,19 @@ resource "null_resource" "ssm_command_master_node" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      aws ssm send-command \
-        --instance-ids ${aws_instance.k3s_control_plane_rs_school.id} \
-        --document-name "AWS-RunShellScript" \
-        --parameters commands=["curl -o /tmp/deploy_jenkins.sh https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_4/terraform/jenkins/deploy_jenkins.sh","chmod +x /tmp/deploy_jenkins.sh","/tmp/deploy_jenkins.sh"] \
-        --comment "Deploy Jenkins via TF" \
-        --region ${var.aws_region}
+      HEALTH_STATUS=$(aws ec2 describe-instance-status --instance-ids ${aws_instance.k3s_control_plane_rs_school.id} --query "InstanceStatuses[0].InstanceStatus.Status" --output text --region ${var.aws_region})
+      if [ "$HEALTH_STATUS" = "ok" ]; then
+        echo "Instance is healthy. Proceeding with SSM command."
+        aws ssm send-command \
+          --instance-ids ${aws_instance.k3s_control_plane_rs_school.id} \
+          --document-name "AWS-RunShellScript" \
+          --parameters commands=["curl -o /tmp/deploy_jenkins.sh https://raw.githubusercontent.com/SerPapanin/rsschool-devops-course-tasks/refs/heads/task_4/terraform/jenkins/deploy_jenkins.sh","chmod +x /tmp/deploy_jenkins.sh","/tmp/deploy_jenkins.sh"] \
+          --comment "Deploy Jenkins via TF" \
+          --region ${var.aws_region}
+      else
+        echo "Instance is not healthy. Skipping SSM command."
+        exit 1
+      fi
     EOT
   }
 }
