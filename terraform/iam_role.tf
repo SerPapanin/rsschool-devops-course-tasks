@@ -16,7 +16,10 @@ resource "aws_iam_role" "GithubActionsRole" {
             "token.actions.githubusercontent.com:aud" : "sts.amazonaws.com"
           },
           "StringLike" : {
-            "token.actions.githubusercontent.com:sub" : "repo:SerPapanin/rsschool-devops-course-tasks:*"
+            "token.actions.githubusercontent.com:sub" : [
+              "repo:SerPapanin/rsschool-devops-course-tasks:*",
+              "repo:SerPapanin/rsschool-wp-helm:*"
+            ]
           }
         }
       }

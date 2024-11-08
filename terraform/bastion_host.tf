@@ -23,9 +23,7 @@ resource "aws_key_pair" "host_pub_key" {
   }
 }
 
-
 # Create the Bastion Host and fetch private IP
-
 resource "aws_instance" "bastion_host_rs_school" {
   ami                         = data.aws_ami.ubuntu.image_id
   instance_type               = "t3.micro"
@@ -116,24 +114,11 @@ data "template_file" "nginx_k3s_conf" {
   }
 }
 
-data "template_file" "nginx_jenkins_conf" {
-  template = file("./templates/nginx_jenkins.tpl")
-  vars = {
-    k3s_private_ip = "${aws_instance.k3s_control_plane_rs_school.private_ip}"
-  }
-}
-
-
 # Store the updated configuration and extra files in SSM parameters
 resource "aws_ssm_parameter" "nginx_k3s_conf" {
   name  = "/conf/nginx_k3s_conf"
   type  = "String"
   value = data.template_file.nginx_k3s_conf.rendered
-}
-resource "aws_ssm_parameter" "nginx_jenkins_conf" {
-  name  = "/conf/nginx_jenkins_conf"
-  type  = "String"
-  value = data.template_file.nginx_jenkins_conf.rendered
 }
 
 # SSM document to apply config, copy extra files, restart service, and run a final command
@@ -151,21 +136,13 @@ resource "aws_ssm_document" "apply_nginx_conf" {
           runCommand = [
             # Retrieve the configuration file and additional files from SSM Parameter Store
             "CONFIG_K3S=$(aws ssm get-parameter --name '/conf/nginx_k3s_conf' --query 'Parameter.Value' --output text)",
-            "CONFIG_JENKINS=$(aws ssm get-parameter --name '/conf/nginx_jenkins_conf' --query 'Parameter.Value' --output text)",
-            #"EXTRA_FILE1_CONTENT=$(aws ssm get-parameter --name '/config/extra_file1' --query 'Parameter.Value' --output text)",
-            #"EXTRA_FILE2_CONTENT=$(aws ssm get-parameter --name '/config/extra_file2' --query 'Parameter.Value' --output text)",
+            #"CONFIG_JENKINS=$(aws ssm get-parameter --name '/conf/nginx_jenkins_conf' --query 'Parameter.Value' --output text)",
 
             # Write the configuration and additional files to their destinations on the instance
             "echo \"$CONFIG_K3S\" > /etc/nginx/modules-enabled/k3s.conf",
-            "echo \"$CONFIG_JENKINS\" > /etc/nginx/sites-enabled/jenkins.conf",
-            #"echo \"$EXTRA_FILE1_CONTENT\" > /etc/k3s/extra_file1.conf",
-            #"echo \"$EXTRA_FILE2_CONTENT\" > /etc/k3s/extra_file2.conf",
-
+            #"echo \"$CONFIG_JENKINS\" > /etc/nginx/sites-enabled/jenkins.conf",
             # Restart the service after applying all configuration and files
-            "systemctl restart nginx",
-
-            # Run a post-restart command (replace with your specific command)
-            #"/usr/local/bin/k3s-check --config /etc/k3s/k3s.conf"
+            "systemctl restart nginx"
           ]
         }
       }
@@ -173,7 +150,7 @@ resource "aws_ssm_document" "apply_nginx_conf" {
   })
 }
 
-# Associate the SSM document with the second instance
+# Associate the SSM document with bastion host
 resource "aws_ssm_association" "apply_nginx_conf_association" {
   name = aws_ssm_document.apply_nginx_conf.name
   targets {
