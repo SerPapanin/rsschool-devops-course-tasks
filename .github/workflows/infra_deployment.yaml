@@ -13,10 +13,10 @@ permissions:
       pull-requests: write # This is required for gh bot to comment PR
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  #AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
   AWS_TF_STATE_FILE_NAME: ${{ vars.AWS_TF_STATE_FILE_NAME }}
-  TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
+  #TERRAFORM_GITHUB_ACTIONS_ROLE_NAME: ${{ vars.TERRAFORM_GITHUB_ACTIONS_ROLE_NAME }}
   TF_VERSION: ${{ vars.TF_VERSION }}
   TERRAFORM_DIR: ${{ vars.TERRAFORM_DIR }}
 
