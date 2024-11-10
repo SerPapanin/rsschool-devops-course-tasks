@@ -135,12 +135,7 @@ resource "aws_ssm_document" "apply_nginx_conf" {
         inputs = {
           runCommand = [
             # Retrieve the configuration file and additional files from SSM Parameter Store
-            "CONFIG_K3S=$(aws ssm get-parameter --name '/conf/nginx_k3s_conf' --query 'Parameter.Value' --output text)",
-            #"CONFIG_JENKINS=$(aws ssm get-parameter --name '/conf/nginx_jenkins_conf' --query 'Parameter.Value' --output text)",
-
-            # Write the configuration and additional files to their destinations on the instance
-            "echo \"$CONFIG_K3S\" > /etc/nginx/modules-enabled/k3s.conf",
-            #"echo \"$CONFIG_JENKINS\" > /etc/nginx/sites-enabled/jenkins.conf",
+            "aws ssm get-parameter --name '/conf/nginx_k3s_conf' --query 'Parameter.Value' --output text > /etc/nginx/modules-enabled/k3s.conf",
             # Restart the service after applying all configuration and files
             "systemctl restart nginx"
           ]
