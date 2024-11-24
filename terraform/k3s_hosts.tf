@@ -10,7 +10,7 @@ resource "random_string" "k3s_token" {
 
 resource "aws_instance" "k3s_control_plane_rs_school" {
   ami           = data.aws_ami.ubuntu.image_id
-  instance_type = "t3a.small"
+  instance_type = "t3a.large"
   subnet_id     = aws_subnet.private_subnets[0].id
   key_name      = aws_key_pair.host_pub_key.key_name
   root_block_device {
@@ -35,7 +35,7 @@ resource "aws_instance" "k3s_control_plane_rs_school" {
   user_data  = <<-EOF
     #!/bin/bash
     apt-get update && apt-get -y upgrade
-    apt-get install awscli git
+    apt-get install -y awscli git
 
     #Set default region to AWS cli
     mkdir -p ~/.aws

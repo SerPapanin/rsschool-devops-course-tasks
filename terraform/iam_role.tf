@@ -64,6 +64,12 @@ resource "aws_iam_role_policy_attachment" "ssm_role_policy_rs_school" {
   role       = aws_iam_role.ssm_role_rs_school.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+# Attach ECR RW policy to instance role
+resource "aws_iam_role_policy_attachment" "ssm_role_policy_ecr_rw_attach" {
+  role       = aws_iam_role.ssm_role_rs_school.name
+  policy_arn = aws_iam_policy.ecr_rw_allow.arn
+}
+
 
 # Create a policy that allows sending SSM commands
 resource "aws_iam_policy" "ssm_send_command_policy" {
@@ -98,6 +104,37 @@ resource "aws_iam_policy" "ssm_send_command_policy" {
 resource "aws_iam_role_policy_attachment" "github_actions_policy_attachment" {
   role       = aws_iam_role.GithubActionsRole.name
   policy_arn = aws_iam_policy.ssm_send_command_policy.arn
+}
+
+#Create a policy that allow ECR RW access
+resource "aws_iam_policy" "ecr_rw_allow" {
+  name        = "ECR_RW_AllowPolicy"
+  description = "Allow complete ECR access"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:DescribeRepositories",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:InitiateLayerUpload",
+          "ecr:ListImages",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
+        ],
+        "Resource" : "*"
+    }]
+  })
+}
+# Attach ECR RW policy to GitHub Action role
+resource "aws_iam_role_policy_attachment" "github_actions_policy_ecr_attach" {
+  role       = aws_iam_role.GithubActionsRole.name
+  policy_arn = aws_iam_policy.ecr_rw_allow.arn
 }
 
 
