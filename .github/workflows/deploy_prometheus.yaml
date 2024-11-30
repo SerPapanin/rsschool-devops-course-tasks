@@ -1,0 +1,43 @@
+name: Deploy Helm Chart to k3s
+
+on:
+  push:
+    branches:
+      - task_7
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Set up Kubeconfig for k3s cluster
+    - name: Set up kubeconfig
+      env:
+        KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+      run: |
+        echo "$KUBECONFIG_DATA" > kubeconfig
+        export KUBECONFIG=$(pwd)/kubeconfig
+
+    # Install Helm
+    - name: Install Helm
+      uses: alpine/k8s
+      with:
+        version: v3.12.3  # Specify the Helm version
+
+    # Deploy Helm Chart
+    - name: Deploy Helm Chart
+      run: |
+        helm upgrade --install my-app ./helm-chart \
+          --namespace default \
+          --set key1=value1 \
+          --set key2=value2 \
+          --kubeconfig kubeconfig
+
+    # Verify Deployment
+    - name: Verify Deployment
+      run: |
+        kubectl get pods --namespace default --kubeconfig kubeconfig
