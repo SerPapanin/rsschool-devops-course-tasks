@@ -24,9 +24,7 @@ jobs:
 
     # Install Helm
     - name: Install Helm
-      uses: alpine/k8s
-      with:
-        version: v3.12.3  # Specify the Helm version
+      uses: alpine/k8s:1.29.11
 
     # Deploy Helm Chart
     - name: Deploy Helm Chart
