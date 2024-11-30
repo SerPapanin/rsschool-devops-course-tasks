@@ -23,8 +23,10 @@ jobs:
         export KUBECONFIG=$(pwd)/kubeconfig
 
     # Install Helm
-    - name: Install Helm
-      uses: alpine/k8s:1.29.11
+    - uses: azure/setup-helm@v4.2.0
+      with:
+         version: v4.2.0
+      id: install
 
     # Deploy Helm Chart
     - name: Deploy Helm Chart
