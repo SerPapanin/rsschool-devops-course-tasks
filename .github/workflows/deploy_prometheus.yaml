@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - task_7
+permissions:
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
+      pull-requests: write # This is required for gh bot to comment PR
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
 
 jobs:
   deploy:
