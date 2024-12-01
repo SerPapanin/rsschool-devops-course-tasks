@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - task_7
+  pull_request:
+    branches:
+      - master
 permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
@@ -41,22 +44,20 @@ jobs:
         role-to-assume: ${{ secrets.AWS_ROLE }}
         aws-region: ${{ env.AWS_REGION }}
         role-session-name: GitHub-OIDC-SG
-    # Step 3: Add IP to Security Group
+    # Step 3: Add GHA runner IP to Security Group
     - name: Add IP to Security Group
       env:
         #RUNNER_IP: ${{ env.RUNNER_IP }}
         CIDR: ${{ env.CIDR}}
         BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
       run: |
-        #CIDR="${RUNNER_IP}/32" # IP in CIDR format
         echo "Adding $CIDR to Security Group ${{ vars.SECURITY_GROUP_ID }}"
 
         aws ec2 authorize-security-group-ingress \
           --group-id ${{ vars.SECURITY_GROUP_ID }} \
           --protocol tcp \
           --port 6443 \
-          --cidr $CIDR \
-          -- description "GitHub Actions temporary access"
+          --cidr $CIDR
 
 
     # Install Helm
@@ -68,14 +69,17 @@ jobs:
     # Deploy Helm Chart
     - name: Deploy Helm Chart
       run: |
-        helm upgrade --install my-app oci://registry-1.docker.io/bitnamicharts/prometheus \
-          --namespace default \
+        kubectl get namespace monitoring || kubectl create namespace monitoring
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm repo update
+        helm upgrade --install my-prometheus bitnami/kube-prometheus \
+          --namespace monitoring \
           --kubeconfig kubeconfig
 
     # Verify Deployment
     - name: Verify Deployment
       run: |
-        kubectl get pods --namespace default --kubeconfig kubeconfig
+        kubectl get pods --namespace monitoring --kubeconfig kubeconfig
 
     # Step 5: Remove IP from Security Group
     - name: Remove IP from Security Group
@@ -84,8 +88,6 @@ jobs:
         CIDR: ${{ env.CIDR}}
         BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
       run: |
-        #CIDR="${RUNNER_IP}/32" # IP in CIDR format
-
         echo "Removing $CIDR from Security Group ${{ vars.SECURITY_GROUP_ID }}"
         aws ec2 revoke-security-group-ingress \
           --group-id ${{ vars.SECURITY_GROUP_ID }} \
