@@ -55,7 +55,9 @@ jobs:
           --group-id ${{ vars.SECURITY_GROUP_ID }} \
           --protocol tcp \
           --port 6443 \
-          --cidr $CIDR
+          --cidr $CIDR \
+          -- description "GitHub Actions temporary access"
+
 
     # Install Helm
     - uses: azure/setup-helm@v4.2.0
