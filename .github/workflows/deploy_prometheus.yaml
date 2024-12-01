@@ -21,6 +21,32 @@ jobs:
       run: |
         echo "$KUBECONFIG_DATA" > kubeconfig
         export KUBECONFIG=$(pwd)/kubeconfig
+    #Get GHA runner IP
+    - name: Get GitHub Runner IP
+      id: runner_ip
+      run: |
+        echo "RUNNER_IP=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_ENV
+    # Configure AWS credetianls
+    - name: Configure AWS credentials from AWS account
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE }}
+        aws-region: ${{ env.AWS_REGION }}
+        role-session-name: GitHub-OIDC-SG
+    # Step 3: Add IP to Security Group
+    - name: Add IP to Security Group
+      run: |
+        PUBLIC_IP=$(cat public_ip.txt)
+        PORT_RANGE="6443"
+        CIDR="${PUBLIC_IP}/32" # IP in CIDR format
+
+        echo "Adding $CIDR to Security Group ${{ vars.SECURITY_GROUP_ID }}"
+
+        aws ec2 authorize-security-group-ingress \
+          --group-id ${{ vars.SECURITY_GROUP_ID }} \
+          --protocol tcp \
+          --port $PORT_RANGE \
+          --cidr $CIDR
 
     # Install Helm
     - uses: azure/setup-helm@v4.2.0
@@ -31,13 +57,26 @@ jobs:
     # Deploy Helm Chart
     - name: Deploy Helm Chart
       run: |
-        helm upgrade --install my-app ./helm-chart \
+        helm upgrade --install my-app oci://registry-1.docker.io/bitnamicharts/prometheus \
           --namespace default \
-          --set key1=value1 \
-          --set key2=value2 \
           --kubeconfig kubeconfig
 
     # Verify Deployment
     - name: Verify Deployment
       run: |
         kubectl get pods --namespace default --kubeconfig kubeconfig
+
+    # Step 5: Remove IP from Security Group
+    - name: Remove IP from Security Group
+      if: success() # Only run this step if the previous steps succeeded
+      run: |
+        PUBLIC_IP=$(cat public_ip.txt)
+        CIDR="${PUBLIC_IP}/32" # IP in CIDR format
+
+        echo "Removing $CIDR from Security Group ${{ vars.SECURITY_GROUP_ID }}"
+
+        aws ec2 revoke-security-group-ingress \
+          --group-id ${{ vars.SECURITY_GROUP_ID }} \
+          --protocol tcp \
+          --port $PORT_RANGE \
+          --cidr $CIDR
