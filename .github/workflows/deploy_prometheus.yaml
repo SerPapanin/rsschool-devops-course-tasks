@@ -69,7 +69,6 @@ jobs:
     # Deploy Helm Chart
     - name: Deploy Helm Chart
       run: |
-        kubectl get namespace monitoring || kubectl create namespace monitoring
         helm repo add bitnami https://charts.bitnami.com/bitnami
         helm repo update
         helm upgrade --install my-prometheus bitnami/kube-prometheus \
