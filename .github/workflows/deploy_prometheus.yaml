@@ -33,7 +33,7 @@ jobs:
     - name: Get GitHub Runner IP
       id: runner_ip
       run: |
-        echo "RUNNER_IP=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_ENV
+        echo "CIDR=$(curl -s https://checkip.amazonaws.com)/32" >> $GITHUB_ENV
     # Configure AWS credetianls
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v4
@@ -43,17 +43,18 @@ jobs:
         role-session-name: GitHub-OIDC-SG
     # Step 3: Add IP to Security Group
     - name: Add IP to Security Group
+      env:
+        #RUNNER_IP: ${{ env.RUNNER_IP }}
+        CIDR: ${{ env.CIDR}}
+        BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
       run: |
-        PUBLIC_IP=$(cat public_ip.txt)
-        PORT_RANGE="6443"
-        CIDR="${PUBLIC_IP}/32" # IP in CIDR format
-
+        #CIDR="${RUNNER_IP}/32" # IP in CIDR format
         echo "Adding $CIDR to Security Group ${{ vars.SECURITY_GROUP_ID }}"
 
         aws ec2 authorize-security-group-ingress \
           --group-id ${{ vars.SECURITY_GROUP_ID }} \
           --protocol tcp \
-          --port $PORT_RANGE \
+          --port 6443 \
           --cidr $CIDR
 
     # Install Helm
@@ -77,14 +78,15 @@ jobs:
     # Step 5: Remove IP from Security Group
     - name: Remove IP from Security Group
       if: success() # Only run this step if the previous steps succeeded
+      env:
+        CIDR: ${{ env.CIDR}}
+        BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
       run: |
-        PUBLIC_IP=$(cat public_ip.txt)
-        CIDR="${PUBLIC_IP}/32" # IP in CIDR format
+        #CIDR="${RUNNER_IP}/32" # IP in CIDR format
 
         echo "Removing $CIDR from Security Group ${{ vars.SECURITY_GROUP_ID }}"
-
         aws ec2 revoke-security-group-ingress \
           --group-id ${{ vars.SECURITY_GROUP_ID }} \
           --protocol tcp \
-          --port $PORT_RANGE \
+          --port 6443 \
           --cidr $CIDR
