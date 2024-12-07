@@ -3,7 +3,7 @@ name: Deploy Helm Chart to k3s
 on:
   push:
     branches:
-      #- task_8
+      - task_8
   pull_request:
     branches:
       - master
@@ -17,7 +17,7 @@ env:
   AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
 
 jobs:
-  deploy:
+  deploy_grafana:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,8 +30,9 @@ jobs:
       env:
         KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
       run: |
-        echo "$KUBECONFIG_DATA" > kubeconfig
-        export KUBECONFIG=$(pwd)/kubeconfig
+        mkdir .kube
+        echo "$KUBECONFIG_DATA" > .kube/config
+        export KUBECONFIG=.kube/config
     #Get GHA runner IP
     - name: Get GitHub Runner IP
       id: runner_ip

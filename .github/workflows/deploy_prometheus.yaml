@@ -17,7 +17,7 @@ env:
   AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
 
 jobs:
-  deploy:
+  deploy_prometheus:
     runs-on: ubuntu-latest
 
     steps:
