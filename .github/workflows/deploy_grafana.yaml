@@ -79,7 +79,7 @@ jobs:
     # Verify Deployment
     - name: Verify Deployment
       run: |
-        kubectl get pods --namespace monitoring --kubeconfig kubeconfig
+        kubectl get pods --namespace monitoring --kubeconfig .kube/config
 
     # Step 5: Remove IP from Security Group
     - name: Remove IP from Security Group
