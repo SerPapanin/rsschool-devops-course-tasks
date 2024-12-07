@@ -3,7 +3,7 @@ name: Deploy Helm Chart to k3s
 on:
   push:
     branches:
-      - task_8
+      #- task_8
   pull_request:
     branches:
       - master
@@ -71,7 +71,7 @@ jobs:
       run: |
         helm repo add bitnami https://charts.bitnami.com/bitnami
         helm repo update
-        helm upgrade --install my-prometheus bitnami/kube-prometheus \
+        helm upgrade --install my-grafana bitnami/grafana \
           --namespace monitoring \
           --kubeconfig kubeconfig
 
