@@ -39,10 +39,10 @@ kubectl get pods -n monitoring
 kubectl get all -n monitoring
 ```
 
-Grafana have external access throuh **Treafik ingress controller**
+Grafana have external access through **Traefik ingress controller**
 
 
-Access Grafana in your browser at http://grafana.local
+Access Grafana in your browser at http://grafana.local \
 As I don't have my own domain, I used local resolver (/etc/hosts)
 
 ## Configure Grafana
