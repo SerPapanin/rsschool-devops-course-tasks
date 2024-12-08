@@ -31,8 +31,8 @@ jobs:
         KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
       run: |
         mkdir .kube
-        echo "$KUBECONFIG_DATA" > .kube/config
-        export KUBECONFIG=.kube/config
+        echo "$KUBECONFIG_DATA" > kubeconfig
+        export KUBECONFIG=kubeconfig
     #Get GHA runner IP
     - name: Get GitHub Runner IP
       id: runner_ip
@@ -75,12 +75,12 @@ jobs:
         helm upgrade --install my-grafana bitnami/grafana \
           --namespace monitoring \
           --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
-          --kubeconfig .kube/config
+          --kubeconfig kubeconfig
 
     # Verify Deployment
     - name: Verify Deployment
       run: |
-        kubectl get pods --namespace monitoring --kubeconfig .kube/config
+        kubectl get pods --namespace monitoring --kubeconfig kubeconfig
 
     # Step 5: Remove IP from Security Group
     - name: Remove IP from Security Group
