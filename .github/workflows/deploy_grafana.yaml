@@ -74,7 +74,7 @@ jobs:
         helm repo update
         helm upgrade --install my-grafana bitnami/grafana \
           --namespace monitoring \
-          --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
+          --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }} \
           --kubeconfig kubeconfig
 
     # Verify Deployment
