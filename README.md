@@ -52,7 +52,7 @@ As I don't have my own domain, I used local resolver (/etc/hosts)
 - Log in to Grafana.
 - Navigate to Configuration → Data Sources → Add data source.
 - Select Prometheus and set the following:
-URL: http://<prometheus-server-service-name>.<namespace>:<port> (e.g., http://prometheus-server.monitoring:9090).
+URL: (e.g., http://prometheus.local:9090).
 - Click Save & Test to verify the connection.
 
 ## Create a Dashboard
