@@ -79,10 +79,10 @@ jobs:
           --set persistence.size=2Gi \
           --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }} \
           --set smtp.enabled=true \
-          --set smtp.host=email-smtp.eu-west-1.amazonaws.com:587 \
-          --set smtp.user=${{ secret.AWS_SES_SMTP_USER }} \
-          --set smtp.password=${{ secret.AWS_SES_SMTP_PASSWORD }} \
-          --set smtp.fromAddress=${{ secret.YOUR_VERIFIED_EMAIL }} \
+          --set smtp.host=email-smtp.us-east-1.amazonaws.com:587 \
+          --set smtp.user=${{ secrets.AWS_SES_SMTP_USER }} \
+          --set smtp.password=${{ secrets.AWS_SES_SMTP_PASSWORD }} \
+          --set smtp.fromAddress=${{ secrets.YOUR_VERIFIED_EMAIL }} \
           --set smtp.fromName="Grafana Alerts" \
           --kubeconfig kubeconfig
 
