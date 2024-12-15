@@ -1,3 +1,87 @@
+# Task 9: Alertmanager Configuration and Verification
+
+## Alertmanager Setup and Alert Configuration
+
+## Step 1: Configure Grafana
+- Create a GHA secret for the Grafana admin password 'GRAFANA_ADMIN_PASS'
+- Create a GHA secret for AWS SES SMTP User 'AWS_SES_SMTP_PASSWORD'
+- Create a GHA secret with AWS SES SMTP password 'AWS_SES_SMTP_PASSWORD'
+- Create a GHA secret with your AWS SES verified email 'YOUR_VERIFIED_EMAIL'
+- Install Grafana using Helm:
+```bash
+helm upgrade --install grafana oci://registry-1.docker.io/bitnamicharts/grafana \
+    --namespace monitoring \
+    --set persistence.enabled=true \
+    --set persistence.size=2Gi \
+    --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }} \
+    --set smtp.enabled=true \
+    --set smtp.host=email-smtp.eu-west-1.amazonaws.com:587 \
+    --set smtp.user=${{ secret.AWS_SES_SMTP_USER }} \
+    --set smtp.password=${{ secret.AWS_SES_SMTP_PASSWORD }} \
+    --set smtp.fromAddress=${{ secret.YOUR_VERIFIED_EMAIL }} \
+    --set smtp.fromName="Grafana Alerts"
+```
+
+Open Grafana in your browser at http://grafana.local
+
+- Chack SMTP settings. Navigate to Alerting → Contact points → Test notification in Grafana.
+
+## Step 2: Create a CPU Utilization Alert
+
+1. Create a new alert:
+- Navigate to Alerting → Alert rules → New alert rule.
+- Use the following PromQL query:
+promql
+
+```bash
+sum(rate(node_cpu_seconds_total{mode!="idle"}[5m])) by (instance) / sum(rate(node_cpu_seconds_total[5m])) by (instance) * 100
+```
+
+2. Set threshold conditions trigger an alert when CPU usage exceeds 70%
+
+3. Set evaluation parameters:
+- Evaluate every: 1m.
+- For: 3m.
+
+4. Save the alert:
+- Name the alert: High CPU utilazation.
+
+## Step 3: Create a Memory Utilization Alert
+
+1. Create a new alert:
+- Navigate to Alerting → Alert rules → New alert rule.
+- Use the following PromQL query:
+promql
+
+```bash
+(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+```
+
+2. Set threshold conditions trigger an alert when memory usage exceeds 70%:
+
+3. Set evaluation parameters:
+- Evaluate every: 1m.
+- For: 3m.
+
+4. Save the alert:
+- Name the alert: High Memory utilazation.
+
+## Step 4: Test Alerts
+1. Test CPU Alert:
+- Run the following stress test to simulate high CPU usage:
+```bash
+stress --cpu $(nproc) --timeout 300
+```
+2. Test Memory Alert:
+- Run the following stress test to simulate high memory usage:
+```bash
+stress --vm 1 --vm-bytes 80% --timeout 300
+```
+3. Verify Alerts:
+- Navigate to Alerting → Active alerts in Grafana and ensure the alerts transition to Firing.
+- Check your email inbox for alert notifications.
+
+
 # Task 8: Grafana Installation and Dashboard Creation
 ## Objective
 In this task, you will install Grafana on your Kubernetes (K8s) cluster using a Helm chart and create a dashboard to visualize Prometheus metrics.
