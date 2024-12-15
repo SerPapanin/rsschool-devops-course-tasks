@@ -3,10 +3,10 @@
 ## Alertmanager Setup and Alert Configuration
 
 ## Step 1: Configure Grafana
-- Create a GHA secret for the Grafana admin password 'GRAFANA_ADMIN_PASS'
-- Create a GHA secret for AWS SES SMTP User 'AWS_SES_SMTP_PASSWORD'
-- Create a GHA secret with AWS SES SMTP password 'AWS_SES_SMTP_PASSWORD'
-- Create a GHA secret with your AWS SES verified email 'YOUR_VERIFIED_EMAIL'
+- Create a GHA secret for the Grafana admin password `GRAFANA_ADMIN_PASS`
+- Create a GHA secret for AWS SES SMTP User `AWS_SES_SMTP_PASSWORD`
+- Create a GHA secret with AWS SES SMTP password `AWS_SES_SMTP_PASSWORD`
+- Create a GHA secret with your AWS SES verified email `YOUR_VERIFIED_EMAIL`
 - Install Grafana using Helm:
 ```bash
 helm upgrade --install grafana oci://registry-1.docker.io/bitnamicharts/grafana \
