@@ -1,6 +1,6 @@
-# Task 9: Alertmanager Configuration and Verification
+# Task 9: Grafana alerting Configuration and Verification
 
-## Alertmanager Setup and Alert Configuration
+## Grafana alerting Setup and Alert Configuration
 
 ## Step 1: Configure Grafana
 - Create a GHA secret for the Grafana admin password `GRAFANA_ADMIN_PASS`
