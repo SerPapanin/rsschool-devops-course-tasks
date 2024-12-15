@@ -3,7 +3,7 @@ name: Deploy Helm Chart to k3s
 on:
   push:
     branches:
-      #- task_9
+      - task_9
   pull_request:
     branches:
       #- master
