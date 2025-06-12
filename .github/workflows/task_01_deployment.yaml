@@ -3,10 +3,13 @@ on:
   push:
     branches:
       #- master
-      - task_1
+      - task_01
   pull_request:
     branches:
       - master
+  # Allows you to run this workflow manually from the Actions tab
+  #workflow_dispatch:
+
 permissions:
   id-token: write # This is required for aws oidc connection
   contents: read # This is required for actions/checkout
