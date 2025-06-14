@@ -6,7 +6,7 @@ on:
       - task_01
   pull_request:
     branches:
-      - master
+      - main
   # Allows you to run this workflow manually from the Actions tab
   #workflow_dispatch:
 
@@ -86,7 +86,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color
-        if: github.event_name == 'pull_request'
+        #if: github.event_name == 'pull_request'
         continue-on-error: true
 
   terraform-apply:
