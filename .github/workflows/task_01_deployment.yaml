@@ -2,7 +2,7 @@ name: "Terraform GitHub action"
 on:
   push:
     branches:
-      #- master
+      #- main
       - task_01
   pull_request:
     branches:
