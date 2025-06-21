@@ -13,4 +13,4 @@ public_subnet_cidrs = ["10.1.1.0/24", "10.1.2.0/24"]
 # Public SSH key pushed to instances
 #public_ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHWDf4OY1ZOWHMcgEvmbRJyFSzq92ZKp5HGHuX9AUsCU"
 # Blocked CIDRs for NACL HTTP/HTTPS block
-#blocked_cidrs = ["86.57.248.100/32"]
+blocked_cidrs = ["86.57.248.100/32"]

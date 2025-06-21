@@ -45,7 +45,11 @@ variable "allowed_ssh_bastion_cidrs" {
   type        = list(string)
   default     = []
 }
-
+variable "blocked_cidrs" {
+  description = "List of CIDR blocks blocked by NACL HTTP/HTTPS block"
+  type        = list(string)
+  default     = []
+}
 # Public SSH key for SSH access to the Bastion Host
 variable "public_ssh_key" {
   description = "Key pair name for SSH access to the Bastion Host"

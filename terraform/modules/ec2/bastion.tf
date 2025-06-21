@@ -28,7 +28,7 @@ resource "aws_instance" "bastion_host" {
   iam_instance_profile = var.bastion_ssm_profile_name
 
   vpc_security_group_ids = [
-    var.private_hosts_sg_id,
+    var.bastion_host_sg_id
   ]
   tags = {
     Name = "Bastion Host rs-school"
