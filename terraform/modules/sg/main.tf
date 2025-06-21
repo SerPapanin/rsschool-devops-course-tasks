@@ -5,6 +5,7 @@ data "aws_vpc" "current_VPC" {
 # Bastion Host Security Group (conditionally allows SSH access)
 resource "aws_security_group" "bastion_host_sg" {
   vpc_id = var.vpc_id
+  name   = "bastion-host-sg"
 
   lifecycle {
     create_before_destroy = true
@@ -59,6 +60,7 @@ resource "aws_security_group" "bastion_host_sg" {
 
 resource "aws_security_group" "private_hosts_sg" {
   vpc_id = var.vpc_id
+  name   = "private-hosts-sg"
 
   lifecycle {
     create_before_destroy = true
