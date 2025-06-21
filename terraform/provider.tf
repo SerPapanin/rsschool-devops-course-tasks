@@ -17,6 +17,7 @@ provider "aws" {
       Environment = var.tf_env
       Project     = var.project
       Owner       = var.owner
+      ManagedBy   = "Terraform"
     }
   }
 }
