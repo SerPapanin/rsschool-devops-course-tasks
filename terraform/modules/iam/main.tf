@@ -43,3 +43,37 @@ resource "aws_iam_openid_connect_provider" "github_actions_IODC_provider" {
     Name = "iodc-provider-github-action"
   }
 }
+# Create a policy that allows sending SSM commands
+resource "aws_iam_policy" "ssm_send_command_policy" {
+  name        = "GitHubActionsSSMPolicy"
+  description = "Allows GitHub Actions to send SSM commands to EC2 instances"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          #"ssm:*",
+          "ssm:SendCommand",
+          "ssm:PutParameter",
+          "ssm:DescribeDocument",
+          "ssm:DescribeInstanceInformation",
+          "ssm:CreateAssociation",
+          "ssm:GetDocument",
+          "ssm:DescribeDocumentPermission",
+          "ssm:GetCommandInvocation"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+  tags = {
+    Name = "github-allow-ssm-commands"
+  }
+}
+
+# Attach the SSM Send Command Policy to the GitHub Actions Role
+resource "aws_iam_role_policy_attachment" "github_actions_policy_attachment" {
+  role       = aws_iam_role.GithubActionsRole.name
+  policy_arn = aws_iam_policy.ssm_send_command_policy.arn
+}
