@@ -1,3 +1,8 @@
+# Get current region
+data "aws_region" "current" {}
+locals {
+  current_region = data.aws_region.current.name
+}
 # Create VPC and subnets
 module "vpc" {
   source   = "./modules/vpc"
@@ -7,7 +12,7 @@ module "vpc" {
 module "networks" {
   source               = "./modules/networks"
   vpc_id               = module.vpc.vpc_id
-  aws_region           = var.aws_region
+  aws_region           = local.current_region
   private_subnet_cidrs = var.private_subnet_cidrs
   public_subnet_cidrs  = var.public_subnet_cidrs
 }
@@ -24,6 +29,7 @@ module "security_groups" {
 # Create EC2 instances
 module "ec2" {
   source                   = "./modules/ec2"
+  aws_region               = local.current_region
   public_ssh_key           = var.public_ssh_key
   private_subnet_ids       = module.networks.private_subnet_ids
   public_subnet_ids        = module.networks.public_subnet_ids

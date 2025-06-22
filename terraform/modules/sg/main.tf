@@ -18,6 +18,14 @@ resource "aws_security_group" "bastion_host_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow SSH from the specified CIDR blocks
   }
+  # Allow access to K3S API server
+  ingress {
+    description = "Allow access to K3S API server"
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow access through reverse proxy
+  }
   # Allow all traffic from within the VPC
   ingress {
     description = "Allow all traffic from within the VPC"

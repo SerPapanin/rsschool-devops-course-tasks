@@ -68,3 +68,71 @@ resource "aws_route" "default_via_bastion" {
     create_before_destroy = true
   }
 }
+
+# Wait until instance health check is passed
+resource "null_resource" "wait_for_health_check_bastion" {
+  depends_on = [aws_instance.bastion_host]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      INSTANCE_ID="${aws_instance.bastion_host.id}"
+      STATUS=$(aws ec2 describe-instance-status --instance-ids $INSTANCE_ID --query "InstanceStatuses[0].InstanceStatus.Status" --output text)
+
+      while [ "$STATUS" != "ok" ]; do
+        echo "Waiting for instance health check to pass..."
+        sleep 10
+        STATUS=$(aws ec2 describe-instance-status --instance-ids $INSTANCE_ID --query "InstanceStatuses[0].InstanceStatus.Status" --output text)
+      done
+      echo "Instance health check passed!"
+    EOT
+  }
+}
+
+#Prepare config files for NGINX reverse proxy
+data "template_file" "nginx_k3s_conf" {
+  template = file("./templates/nginx_k3s.tpl")
+  vars = {
+    k3s_private_ip = "${aws_instance.k3s_control_plane.private_ip}"
+  }
+}
+
+# Store the updated configuration and extra files in SSM parameters
+resource "aws_ssm_parameter" "nginx_k3s_conf" {
+  name  = "/conf/nginx_k3s_conf"
+  type  = "String"
+  value = data.template_file.nginx_k3s_conf.rendered
+}
+
+# SSM document to apply config, copy extra files, restart service, and run a final command
+resource "aws_ssm_document" "apply_nginx_conf" {
+  name          = "apply_nginx_conf_ssm"
+  document_type = "Command"
+  content = jsonencode({
+    schemaVersion = "2.2",
+    description   = "Apply nginx reverse proxy k3s config, copy extra files, restart service, and run post-restart command",
+    mainSteps = [
+      {
+        action = "aws:runShellScript",
+        name   = "applyConfigAndCopyFiles",
+        inputs = {
+          runCommand = [
+            # Retrieve the configuration file and additional files from SSM Parameter Store
+            "aws ssm get-parameter --name '/conf/nginx_k3s_conf' --query 'Parameter.Value' --output text > /etc/nginx/modules-enabled/k3s.conf",
+            # Restart the service after applying all configuration and files
+            "systemctl restart nginx"
+          ]
+        }
+      }
+    ]
+  })
+}
+
+# Associate the SSM document with bastion host
+resource "aws_ssm_association" "apply_nginx_conf_association" {
+  name = aws_ssm_document.apply_nginx_conf.name
+  targets {
+    key    = "InstanceIds"
+    values = [aws_instance.bastion_host.id]
+  }
+  depends_on = [null_resource.wait_for_health_check_bastion]
+}

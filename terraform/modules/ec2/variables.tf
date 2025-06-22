@@ -1,3 +1,6 @@
+variable "aws_region" {
+  description = "The AWS region to use"
+}
 variable "public_ssh_key" {
   description = "Key pair name for SSH access to the Bastion Host"
 }
