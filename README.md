@@ -73,10 +73,10 @@ Blocked CIDRs for NACL HTTP/HTTPS block
 ## Task 3 documentation
 ## K8S cluster with [k3s](https://k3s.io/)
 
-#### In frame of the task K3s cluster instaled and configured automaticaly
-K3s cluster consists of 1 master node and 1 worker node
-Connection to cluster implemented through nginx reverse proxy installed on Bastion host
-After cluster is created config file uploaded to Parameter Store
+#### In frame of the task K3s cluster instaled and configured automaticaly by terraform
+K3s cluster consists of 1 master node and 1 worker node\
+Connection to cluster implemented through nginx reverse proxy installed on Bastion host\
+After cluster is created config file uploaded to Parameter Store\
 For connection from local machine to cluster need to store kube config into ~/.kube/config file
 
 ### Istalation steps and verifications (manual adding node to k3s cluster)
