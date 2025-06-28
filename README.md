@@ -138,7 +138,7 @@ apiVersion: v1
 clusters:
   - cluster:
       certificate-authority-data: LRMEMMW2 # shortened for readability
-      server: https://<BASTION_HOST_IP>:8080
+      server: https://<BASTION_HOST_IP>:6443
     name: default
 ... # shortened for readability
 ```
