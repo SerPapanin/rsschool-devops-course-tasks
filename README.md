@@ -69,3 +69,76 @@ Blocked CIDRs for NACL HTTP/HTTPS block
 - Add routes to public network and private network. Route traffic to internet in private network through bastion host
 - Create host in private network with SSM role and SSM agent instaled
 - Create NACL rules to allow all traffic and block HTTP/HTTPS access for specified CIDRs
+
+## Task 3 documentation
+## K8S cluster with [k3s](https://k3s.io/)
+
+#### In frame of the task K3s cluster instaled and configured automaticaly
+K3s cluster consists of 1 master node and 1 worker node
+Connection to cluster implemented through nginx reverse proxy installed on Bastion host
+After cluster is created config file uploaded to Parameter Store
+For connection from local machine to cluster need to store kube config into ~/.kube/config file
+
+### Istalation steps and verifications (manual adding node to k3s cluster)
+
+1. **On control plane check status of k3s service**
+    ```bash
+    systemctl status k3s
+    ```
+2. **Get the server token:**
+    ```bash
+    sudo cat /var/lib/rancher/k3s/server/node-token
+    ```
+3. **Install worker node and join to the cluster**
+    ```bash
+   curl -sfL https://get.k3s.io | K3S_URL=https://<master_none_IP>:6443 K3S_TOKEN=<server_token> sh -
+    ```
+4. Check the nodes list from master node
+ ```bash
+    sudo kubectl get nodes
+```
+    Result:
+```bash
+root@ip-10-0-6-109:~# kubectl get nodes
+NAME            STATUS   ROLES                  AGE   VERSION
+ip-10-0-6-109   Ready    control-plane,master   45m   v1.32.5+k3s1
+ip-10-0-6-149   Ready    <none>                 36m   v1.32.5+k3s1
+```
+5. Deploy a Simple Workload
+
+   ```bash
+   kubectl apply -f https://k8s.io/examples/pods/simple-pod.yaml
+   ```
+6. Verify that the pod is running:
+
+   ```bash
+   kubectl get pods
+   ```
+7. For connection from local machine used NGINX reverse proxy installed on bastion host
+
+NGINX config
+```
+stream {
+        upstream api {
+                server <kube-api-server-ip>:6443;
+        }
+        server {
+                listen 6443; # this is the port exposed by nginx on your proxy server
+                proxy_pass api;
+                proxy_timeout 20s;
+        }
+}
+```
+8.  kubectl config on local machine
+
+Copied from k3s-server `/etc/rancher/k3s/k3s.yaml` to local machine `~/.kube/config`. `server` field is changed.
+
+```yaml
+apiVersion: v1
+clusters:
+  - cluster:
+      certificate-authority-data: LRMEMMW2 # shortened for readability
+      server: https://<BASTION_HOST_IP>:8080
+    name: default
+... # shortened for readability
+```
