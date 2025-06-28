@@ -38,7 +38,12 @@ resource "aws_instance" "bastion_host" {
     #!/bin/bash
     hostname bastion_host
     apt-get update
-    apt-get install -y iptables
+    apt-get install -y iptables jq awscli
+
+    #Set default region to AWS cli
+    mkdir -p ~/.aws
+    echo "[default]" > ~/.aws/config
+    echo "region = ${var.aws_region}" >> ~/.aws/config
 
     # Install and start the SSM agent
     snap install amazon-ssm-agent --classic

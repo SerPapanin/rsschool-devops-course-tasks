@@ -29,3 +29,20 @@ resource "aws_iam_instance_profile" "bastion_ssm_profile_rs_school" {
   name = "bastion-ssm-profile-rs-school"
   role = aws_iam_role.ssm_role_rs_school.name
 }
+
+# Add policy to allow putting kubeconfig to SSM parameter store
+resource "aws_iam_role_policy" "put_kubeconfig_to_ssm" {
+  name = "allow-put-parameter-k3s"
+  role = aws_iam_role.ssm_role_rs_school.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "ssm:PutParameter",
+        Resource = "arn:aws:ssm:*:*:parameter/k3s/*"
+      }
+    ]
+  })
+}

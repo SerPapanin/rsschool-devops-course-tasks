@@ -25,12 +25,18 @@ resource "aws_instance" "k3s_control_plane" {
   ]
   tags = {
     Name = "K3S-control_plane"
+    Role = "k3s-master"
   }
 
   user_data  = <<-EOF
     #!/bin/bash
-    hostname bastion_host
-    apt-get update
+    hostname k3s-control-plane
+    apt-get update && apt install -y jq awscli
+
+    #Set default region to AWS cli
+    mkdir -p ~/.aws
+    echo "[default]" > ~/.aws/config
+    echo "region = ${var.aws_region}" >> ~/.aws/config
 
     # Install and start the SSM agent
     snap install amazon-ssm-agent --classic
@@ -66,7 +72,7 @@ resource "aws_instance" "k3s_worker_node01" {
 
   user_data  = <<-EOF
     #!/bin/bash
-    hostname bastion_host
+    hostname k3s-worker-node01
     apt-get update
 
     # Install and start the SSM agent
@@ -76,4 +82,55 @@ resource "aws_instance" "k3s_worker_node01" {
     curl -sfL https://get.k3s.io | K3S_URL=https://${aws_instance.k3s_control_plane.private_ip}:6443 K3S_TOKEN=${random_string.k3s_token.result} sh -
   EOF
   depends_on = [aws_instance.bastion_host]
+}
+
+resource "aws_ssm_document" "upload_k3s_config" {
+  name          = "UploadK3sConfig"
+  document_type = "Command"
+  content = jsonencode({
+    schemaVersion = "2.2",
+    description   = "Upload k3s.yaml to SSM Parameter Store",
+    mainSteps = [
+      {
+        action = "aws:runShellScript"
+        name   = "uploadK3sYaml"
+        inputs = {
+          runCommand = [
+            # Wait for kubeconfig to be available
+            "while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do sleep 2; done",
+            # Upload to Parameter Store
+            "aws ssm put-parameter --name /k3s/kubeconfig --type SecureString --overwrite --value \"$(cat /etc/rancher/k3s/k3s.yaml)\" --region $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)"
+          ]
+        }
+      }
+    ]
+  })
+}
+
+# Wait until instance health check is passed
+resource "null_resource" "wait_for_health_check_k3s_master" {
+  depends_on = [aws_instance.k3s_control_plane]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      INSTANCE_ID="${aws_instance.k3s_control_plane.id}"
+      STATUS=$(aws ec2 describe-instance-status --instance-ids $INSTANCE_ID --query "InstanceStatuses[0].InstanceStatus.Status" --output text)
+
+      while [ "$STATUS" != "ok" ]; do
+        echo "Waiting for instance health check to pass..."
+        sleep 10
+        STATUS=$(aws ec2 describe-instance-status --instance-ids $INSTANCE_ID --query "InstanceStatuses[0].InstanceStatus.Status" --output text)
+      done
+      echo "Instance health check passed!"
+    EOT
+  }
+}
+resource "aws_ssm_association" "run_on_k3s_master" {
+  name = aws_ssm_document.upload_k3s_config.name
+
+  targets {
+    key    = "InstanceIds"
+    values = [aws_instance.k3s_control_plane.id]
+  }
+  depends_on = [null_resource.wait_for_health_check_k3s_master]
 }
