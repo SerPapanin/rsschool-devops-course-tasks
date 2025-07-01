@@ -1,4 +1,4 @@
-name: "Terraform GitHub action"
+name: "Terraform Infrastructure Deployment"
 on:
   push:
     branches:
