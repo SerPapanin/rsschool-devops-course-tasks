@@ -44,9 +44,9 @@ jobs:
           RUNNER_IP: ${{ env.RUNNER_IP }}
           BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
         run: |
-          echo "Adding $RUNNER_IP to Security Group ${{ vars.SECURITY_GROUP_ID }}"
+          echo "Adding $RUNNER_IP to Security Group ${{ vars.BASTION_SG_ID }}"
           aws ec2 authorize-security-group-ingress \
-            --group-id ${{ vars.SECURITY_GROUP_ID }} \
+            --group-id ${{ vars.BASTION_SG_ID }} \
             --protocol tcp \
             --port 6443 \
             --cidr $RUNNER_IP
@@ -89,9 +89,9 @@ jobs:
           RUNNER_IP: ${{ env.RUNNER_IP }}
           BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
         run: |
-          echo "Removing $RUNNER_IP from Security Group ${{ vars.SECURITY_GROUP_ID }}"
+          echo "Removing $RUNNER_IP from Security Group ${{ vars.BASTION_SG_ID }}"
           aws ec2 revoke-security-group-ingress \
-            --group-id ${{ vars.SECURITY_GROUP_ID }} \
+            --group-id ${{ vars.BASTION_SG_ID }} \
             --protocol tcp \
             --port 6443 \
             --cidr $RUNNER_IP
