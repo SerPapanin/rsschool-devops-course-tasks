@@ -2,6 +2,10 @@ name: "Deploy Jenkins"
 on:
   workflow_dispatch: # Manual trigger
 
+  push:
+    branches:
+      - task_04
+
   workflow_run: # Auto-trigger after infrastructure workflow completes successfully
     workflows: ["Terraform Infrastructure Deployment"]
     types:
