@@ -4,13 +4,6 @@ on:
     branches:
       - task_04
 
-  workflow_run: # Auto-trigger after infrastructure workflow completes successfully
-    workflows: ["Terraform Infrastructure Deployment"]
-    types:
-      - completed
-    branches:
-      - main
-      - task_04
 permissions:
   id-token: write # This is required for aws oidc connection
   contents: read # This is required for actions/checkout
