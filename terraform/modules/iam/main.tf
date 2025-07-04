@@ -1,45 +1,48 @@
-resource "aws_iam_role" "GithubActionsRole" {
-  name = "GithubActionsRole"
+# Create IAM role for SSM agent
+resource "aws_iam_role" "ssm_role_rs_school" {
+  name = "bastion-ssm-role"
+
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Federated" : "arn:aws:iam::837781915459:oidc-provider/token.actions.githubusercontent.com"
-        },
-        "Action" : "sts:AssumeRoleWithWebIdentity",
-        "Condition" : {
-          "StringEquals" : {
-            "token.actions.githubusercontent.com:aud" : "sts.amazonaws.com"
-          },
-          "StringLike" : {
-            "token.actions.githubusercontent.com:sub" : "repo:SerPapanin/rsschool-devops-course-tasks:*"
-          }
-        }
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
       }
-    ]
+    }]
   })
 
   tags = {
-    Name = "iam-role-GithubActionsRole"
+    Name = "SSM Role for Bastion Host"
   }
 }
 
-# Attach policies to the GitHub Actions role
-resource "aws_iam_role_policy_attachment" "GithubActionsPolicyAttachments" {
-  for_each   = toset(var.github_action_iam_policies_list)
-  role       = aws_iam_role.GithubActionsRole.name
-  policy_arn = each.value
+# Attach AmazonSSMManagedInstanceCore policy to the role
+resource "aws_iam_role_policy_attachment" "ssm_role_policy_rs_school" {
+  role       = aws_iam_role.ssm_role_rs_school.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-#Create GitHub Actions OIDC Provider
-resource "aws_iam_openid_connect_provider" "github_actions_IODC_provider" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["d89e3bd43d5d909b47a18977aa9d5ce36cee184c", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
+# Create an instance profile for the Bastion Host
+resource "aws_iam_instance_profile" "bastion_ssm_profile_rs_school" {
+  name = "bastion-ssm-profile-rs-school"
+  role = aws_iam_role.ssm_role_rs_school.name
+}
 
-  tags = {
-    Name = "iodc-provider-github-action"
-  }
+# Add policy to allow putting kubeconfig to SSM parameter store
+resource "aws_iam_role_policy" "put_kubeconfig_to_ssm" {
+  name = "allow-put-parameter-k3s"
+  role = aws_iam_role.ssm_role_rs_school.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "ssm:PutParameter",
+        Resource = "arn:aws:ssm:*:*:parameter/k3s/*"
+      }
+    ]
+  })
 }
