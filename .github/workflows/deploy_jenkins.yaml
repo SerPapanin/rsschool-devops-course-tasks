@@ -78,7 +78,7 @@ jobs:
           --namespace jenkins \
           --values jenkins/jenkins_values.yaml \
           --kubeconfig kubeconfig
-          kubectl apply -f jenkins/ingress_jenkins.yaml -n jenkins
+          kubectl apply -f jenkins/ingress_jenkins.yaml -n jenkins --kubeconfig kubeconfig
 
       # Verify Deployment
       - name: Verify Deployment
