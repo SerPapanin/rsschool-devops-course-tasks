@@ -43,6 +43,7 @@ jobs:
           role-session-name: GitHub-OIDC-SG
       # Add GHA runner IP to Security Group
       - name: Add IP to Security Group
+        id: add_ip
         env:
           RUNNER_IP: ${{ env.RUNNER_IP }}
           BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
@@ -78,7 +79,7 @@ jobs:
           --namespace jenkins \
           --values jenkins/jenkins_values.yaml \
           --kubeconfig kubeconfig
-          kubectl apply -f jenkins/ingress_jenkins.yaml -n jenkins --kubeconfig kubeconfig
+          kubectl apply -f jenkins/jenkins_ingress.yaml -n jenkins --kubeconfig kubeconfig
 
       # Verify Deployment
       - name: Verify Deployment
@@ -87,7 +88,7 @@ jobs:
 
       # Step 5: Remove IP from Security Group
       - name: Remove IP from Security Group
-        if: success() # Only run this step if the previous steps succeeded
+        if: steps.add_ip.outcome == 'success' # Run only "add IP" step succeeded
         env:
           RUNNER_IP: ${{ env.RUNNER_IP }}
           BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
