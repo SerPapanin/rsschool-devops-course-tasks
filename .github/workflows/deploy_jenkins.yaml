@@ -60,7 +60,7 @@ jobs:
           KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
         run: |
           echo "$KUBECONFIG_DATA" > kubeconfig
-          export KUBECONFIG=$(pwd)/kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig >> $GITHUB_ENV
       # Prepare K3s cluster
       - name: Install helm
         uses: azure/setup-helm@v4.3.0
@@ -71,7 +71,12 @@ jobs:
       # Deploy JeHelm Chart
       - name: Deploy Jenkins Helm Chart
         run: |
-          kubectl create namespace jenkins --kubeconfig kubeconfig
+          if ! kubectl get namespace jenkins > /dev/null 2>&1; then
+            echo "Namespace 'jenkins' does not exist. Creating..."
+            kubectl create namespace jenkins
+          else
+            echo "Namespace 'jenkins' already exists. Skipping creation."
+          fi
           kubectl apply -f jenkins/pvc.yaml -n jenkins --kubeconfig kubeconfig
           helm repo add jenkins https://charts.jenkins.io
           helm repo update
