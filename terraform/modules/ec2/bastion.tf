@@ -100,12 +100,23 @@ data "template_file" "nginx_k3s_conf" {
     k3s_private_ip = "${aws_instance.k3s_control_plane.private_ip}"
   }
 }
+data "template_file" "nginx_jenkins_conf" {
+  template = file("./templates/nginx_jenkins.tpl")
+  vars = {
+    k3s_private_ip = "${aws_instance.k3s_control_plane.private_ip}"
+  }
+}
 
-# Store the updated configuration and extra files in SSM parameters
+# Store the nginx configuration in SSM parameters
 resource "aws_ssm_parameter" "nginx_k3s_conf" {
   name  = "/conf/nginx_k3s_conf"
   type  = "String"
   value = data.template_file.nginx_k3s_conf.rendered
+}
+resource "aws_ssm_parameter" "nginx_jenkins_conf" {
+  name  = "/conf/nginx_jenkins_conf"
+  type  = "String"
+  value = data.template_file.nginx_jenkins_conf.rendered
 }
 
 # SSM document to apply config, copy extra files, restart service, and run a final command
@@ -123,6 +134,7 @@ resource "aws_ssm_document" "apply_nginx_conf" {
           runCommand = [
             # Retrieve the configuration file and additional files from SSM Parameter Store
             "aws ssm get-parameter --name '/conf/nginx_k3s_conf' --query 'Parameter.Value' --output text > /etc/nginx/modules-enabled/k3s.conf",
+            "aws ssm get-parameter --name '/conf/nginx_jenkins_conf' --query 'Parameter.Value' --output text > /etc/nginx/modules-enabled/jenkins.conf",
             # Restart the service after applying all configuration and files
             "systemctl restart nginx"
           ]
