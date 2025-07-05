@@ -26,6 +26,14 @@ resource "aws_security_group" "bastion_host_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow access through reverse proxy
   }
+  # Allow access to Jenkins
+  ingress {
+    description = "Allow access to Jenkins"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_ssh_bastion_cidrs # Allow access through reverse proxy
+  }
   # Allow all traffic from within the VPC
   ingress {
     description = "Allow all traffic from within the VPC"
