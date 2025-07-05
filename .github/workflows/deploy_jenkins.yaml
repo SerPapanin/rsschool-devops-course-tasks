@@ -70,8 +70,8 @@ jobs:
       # Deploy JeHelm Chart
       - name: Deploy Jenkins Helm Chart
         run: |
-          kubectl create namespace jenkins
-          kubectl apply -f jenkins/pvc.yaml -n jenkins
+          kubectl create namespace jenkins --kubeconfig kubeconfig
+          kubectl apply -f jenkins/pvc.yaml -n jenkins --kubeconfig kubeconfig
           helm repo add jenkins https://charts.jenkins.io
           helm repo update
           helm upgrade --install my-jenkins jenkins/jenkins \
