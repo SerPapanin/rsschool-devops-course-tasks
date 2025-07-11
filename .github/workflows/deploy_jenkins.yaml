@@ -1,0 +1,105 @@
+name: "Deploy Jenkins"
+on:
+  push:
+    branches:
+      - task_04
+
+  workflow_run: # Auto-trigger after infrastructure workflow completes successfully
+    workflows: ["Terraform Infrastructure Deployment"]
+    types:
+      - completed
+    branches:
+      - main
+      - task_04
+permissions:
+  id-token: write # This is required for aws oidc connection
+  contents: read # This is required for actions/checkout
+  pull-requests: write # This is required for gh bot to comment PR
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+
+jobs:
+  deploy_jenkins:
+    #if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+      #Get GHA runner IP
+      - name: Get GitHub Runner IP
+        id: runner_ip
+        run: |
+          echo "RUNNER_IP=$(curl -s https://checkip.amazonaws.com)/32" >> $GITHUB_ENV
+      # Configure AWS credetianls
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-SG
+      # Add GHA runner IP to Security Group
+      - name: Add IP to Security Group
+        id: add_ip
+        env:
+          RUNNER_IP: ${{ env.RUNNER_IP }}
+          BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
+        run: |
+          echo "Adding $RUNNER_IP to Security Group ${{ vars.BASTION_SG_ID }}"
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ vars.BASTION_SG_ID }} \
+            --protocol tcp \
+            --port 6443 \
+            --cidr $RUNNER_IP
+      # Set up Kubeconfig for k3s cluster
+      - name: Set up kubeconfig
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
+        run: |
+          echo "$KUBECONFIG_DATA" > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig >> $GITHUB_ENV
+      # Prepare K3s cluster
+      - name: Install helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.18.3
+        id: install
+
+      # Deploy JeHelm Chart
+      - name: Deploy Jenkins Helm Chart
+        run: |
+          if ! kubectl get namespace jenkins --kubeconfig kubeconfig > /dev/null 2>&1; then
+            echo "Namespace 'jenkins' does not exist. Creating..."
+            kubectl create namespace jenkins --kubeconfig kubeconfig
+          else
+            echo "Namespace 'jenkins' already exists. Skipping creation."
+          fi
+          helm repo add jenkins https://charts.jenkins.io
+          helm repo update
+          helm upgrade --install my-jenkins jenkins/jenkins \
+          --namespace jenkins \
+          --values jenkins/jenkins_values.yaml \
+          --kubeconfig kubeconfig
+          kubectl apply -f jenkins/jenkins_ingress.yaml -n jenkins --kubeconfig kubeconfig
+
+      # Verify Deployment
+      - name: Verify Deployment
+        run: |
+          kubectl get pods --namespace jenkins --kubeconfig kubeconfig
+
+      # Step 5: Remove IP from Security Group
+      - name: Remove IP from Security Group
+        if: steps.add_ip.outcome == 'success' # Run only "add IP" step succeeded
+        env:
+          RUNNER_IP: ${{ env.RUNNER_IP }}
+          BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
+        run: |
+          echo "Removing $RUNNER_IP from Security Group ${{ vars.BASTION_SG_ID }}"
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ vars.BASTION_SG_ID }} \
+            --protocol tcp \
+            --port 6443 \
+            --cidr $RUNNER_IP
