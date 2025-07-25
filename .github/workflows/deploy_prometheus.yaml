@@ -1,5 +1,4 @@
 name: "Deployment Prometheus to k3s"
-
 on:
   push:
     branches:
