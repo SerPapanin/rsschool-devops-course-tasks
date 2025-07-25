@@ -73,27 +73,28 @@ jobs:
       - name: Deploy Prometheus Helm Chart
         continue-on-error: false
         run: |
-          if ! kubectl get namespace ${{ vars.NAMESPACE }} --kubeconfig kubeconfig > /dev/null 2>&1; then
-            echo "Namespace ${{ vars.NAMESPACE }} does not exist. Creating..."
-            kubectl create namespace ${{ vars.NAMESPACE }} --kubeconfig kubeconfig
+          if ! kubectl get namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig > /dev/null 2>&1; then
+            echo "Namespace ${{ env.NAMESPACE }} does not exist. Creating..."
+            kubectl create namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
           else
-            echo "Namespace ${{ vars.NAMESPACE }} already exists. Skipping creation."
+            echo "Namespace ${{ env.NAMESPACE }} already exists. Skipping creation."
           fi
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
           helm upgrade --install my-prometheus bitnami/kube-prometheus \
-            --namespace ${{ vars.NAMESPACE }} \
+            --namespace ${{ env.NAMESPACE }} \
             --kubeconfig kubeconfig
-          kubectl apply -f manifests/ingress_prometheus.yaml -n ${{ vars.NAMESPACE }} --kubeconfig kubeconfig
+          kubectl apply -f manifests/ingress_prometheus.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
       # Verify Deployment
       - name: Verify Deployment
         continue-on-error: false
         run: |
-          kubectl get pods --namespace ${{ vars.NAMESPACE }} --kubeconfig kubeconfig
+          kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
       # Step 5: Remove IP from Security Group
       - name: Remove IP from Security Group
+        continue-on-error: true
         if: steps.add_ip.outcome == 'success' # Run only "add IP" step succeeded
         env:
           CIDR: ${{ env.CIDR}}
