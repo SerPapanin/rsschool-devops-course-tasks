@@ -53,7 +53,7 @@ jobs:
           CIDR: ${{ env.CIDR}} # Runner IP address
           BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
         run: |
-          echo "Adding $CIDR to Security Group ${{ vars.SECURITY_GROUP_ID }}"
+          echo "Adding $CIDR to Security Group ${{ env.BASTION_SG_ID }}"
 
           aws ec2 authorize-security-group-ingress \
             --group-id ${{ env.BASTION_SG_ID }} \
@@ -99,9 +99,9 @@ jobs:
           CIDR: ${{ env.CIDR}}
           BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
         run: |
-          echo "Removing $CIDR from Security Group ${{ vars.SECURITY_GROUP_ID }}"
+          echo "Removing $CIDR from Security Group ${{ env.BASTION_SG_ID }}"
           aws ec2 revoke-security-group-ingress \
-            --group-id ${{ vars.SECURITY_GROUP_ID }} \
+            --group-id ${{ env.BASTION_SG_ID }} \
             --protocol tcp \
             --port 6443 \
             --cidr $CIDR
