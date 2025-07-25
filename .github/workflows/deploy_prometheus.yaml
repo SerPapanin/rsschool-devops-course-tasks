@@ -1,4 +1,4 @@
-name: Deploy Prometheus Chart to k3s
+name: "Deployment Prometheus to k3s"
 
 on:
   push:
@@ -90,6 +90,7 @@ jobs:
       - name: Verify Deployment
         continue-on-error: false
         run: |
+          sleep 60
           kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
       # Step 5: Remove IP from Security Group
