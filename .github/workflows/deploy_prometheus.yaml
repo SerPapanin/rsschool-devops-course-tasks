@@ -56,7 +56,7 @@ jobs:
           echo "Adding $CIDR to Security Group ${{ vars.SECURITY_GROUP_ID }}"
 
           aws ec2 authorize-security-group-ingress \
-            --group-id ${{ vars.SECURITY_GROUP_ID }} \
+            --group-id ${{ env.BASTION_SG_ID }} \
             --protocol tcp \
             --port 6443 \
             --cidr $CIDR
