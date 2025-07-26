@@ -36,26 +36,6 @@ prometheus:
 
 alertmanager:
   enabled: true
-  config:
-    global:
-      smtp_smarthost: "email-smtp.us-east-1.amazonaws.com:587"
-      smtp_from: '{{ env "SMTP_FROM" }}'
-      smtp_auth_username: '{{ env "SMTP_USER" }}'
-      smtp_auth_password: '{{ env "SMTP_PASS" }}'
-    route:
-      receiver: email
-    receivers:
-      - name: email
-        email_configs:
-          - to: '{{ env "SMTP_TO" }}'
-
-  extraSecretMounts:
-    - name: alertmanager-smtp-secret
-      mountPath: /etc/alertmanager/secrets
-      secretName: alertmanager-smtp-secret
-      readOnly: true
-
-  extraEnvVarsSecret: alertmanager-smtp-secret
 
   persistence:
     enabled: true
