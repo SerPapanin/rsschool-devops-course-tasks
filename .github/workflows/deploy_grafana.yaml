@@ -1,0 +1,109 @@
+name: "Deployment Grafana to k3s"
+on:
+  push:
+    branches:
+      - task_07
+  pull_request:
+    branches:
+      - main
+permissions:
+  id-token: write # This is required for aws oidc connection
+  contents: read # This is required for actions/checkout
+  pull-requests: write # This is required for gh bot to comment PR
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
+  NAMESPACE: monitoring
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Kubeconfig for k3s cluster
+      - name: Set up kubeconfig
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
+        run: |
+          echo "$KUBECONFIG_DATA" > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig
+      #Get GHA runner IP
+      - name: Get GitHub Runner IP
+        id: runner_ip
+        run: |
+          echo "CIDR=$(curl -s https://checkip.amazonaws.com)/32" >> $GITHUB_ENV
+      # Configure AWS credetianls
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-SG
+      # Step 3: Add GHA runner IP to Security Group
+      - name: Add IP to Security Group
+        id: add_ip
+        if: steps.runner_ip.outcome == 'success'
+        env:
+          CIDR: ${{ env.CIDR}} # Runner IP address
+          BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
+        run: |
+          echo "Adding $CIDR to Security Group ${{ env.BASTION_SG_ID }}"
+
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ env.BASTION_SG_ID }} \
+            --protocol tcp \
+            --port 6443 \
+            --cidr $CIDR
+
+      # Prepare K3s cluster
+      - name: Install helm
+        continue-on-error: false
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.18.3
+        id: install_helm
+
+      # Deploy Helm Chart
+      - name: Deploy Prometheus Helm Chart
+        continue-on-error: false
+        run: |
+          if ! kubectl get namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig > /dev/null 2>&1; then
+            echo "Namespace ${{ env.NAMESPACE }} does not exist. Creating..."
+            kubectl create namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+          else
+            echo "Namespace ${{ env.NAMESPACE }} already exists. Skipping creation."
+          fi
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm upgrade --install my-grafana bitnami/grafana \
+            --namespace ${{ env.NAMESPACE }} \
+            --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
+            --kubeconfig kubeconfig
+          kubectl apply -f manifests/ingress_grafana.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+
+      # Verify Deployment
+      - name: Verify Deployment
+        continue-on-error: false
+        run: |
+          sleep 60
+          kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+
+      # Step 5: Remove IP from Security Group
+      - name: Remove IP from Security Group
+        continue-on-error: true
+        if: steps.add_ip.outcome == 'success' # Run only "add IP" step succeeded
+        env:
+          CIDR: ${{ env.CIDR}}
+          BASTION_SG_ID: ${{ vars.BASTION_SG_ID }}
+        run: |
+          echo "Removing $CIDR from Security Group ${{ env.BASTION_SG_ID }}"
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ env.BASTION_SG_ID }} \
+            --protocol tcp \
+            --port 6443 \
+            --cidr $CIDR
