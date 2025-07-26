@@ -6,18 +6,6 @@ kubelet:
     insecureSkipVerify: true
     interval: 30s
 
-nodeExporter:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-    interval: 30s
-
-kubeStateMetrics:
-  enabled: true
-  serviceMonitor:
-    enabled: true
-    interval: 30s
-
 prometheus:
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false
@@ -45,28 +33,210 @@ prometheus:
   ingress:
     enabled: false
 
+## Alertmanager configuration
 alertmanager:
   enabled: true
 
-  config:
+  # Alertmanager configuration
+  configuration: |
     global:
-      smtp_smarthost: "email-smtp.us-east-1.amazonaws.com:587"
-      smtp_from: "{{ .Env.SMTP_FROM }}"
-      smtp_auth_username: "{{ .Env.SMTP_USER }}"
-      smtp_auth_password: "{{ .Env.SMTP_PASS }}"
+      smtp_smarthost: 'email-smtp.us-east-1.amazonaws.com:587'
+      smtp_from: '{{ .Env.SMTP_FROM }}'
+      smtp_auth_username: '{{ .Env.SMTP_USER }}'
+      smtp_auth_password: '{{ .Env.SMTP_PASS }}'
+      smtp_require_tls: true
+
     route:
-      receiver: "email"
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: 'default-receiver'
+      routes:
+        - match:
+            severity: critical
+          receiver: 'critical-alerts'
+          group_wait: 10s
+          repeat_interval: 1h
+        - match:
+            severity: warning
+          receiver: 'warning-alerts'
+          repeat_interval: 6h
+
     receivers:
-      - name: "email"
+      - name: 'default-receiver'
         email_configs:
-          - to: "panin.tut@gmail.com"
+          - to: 'panin.tut@gmail.com'
+            subject: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+            body: |
+              {{ range .Alerts }}
+              Alert: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Labels: {{ range .Labels.SortedPairs }}
+                {{ .Name }}: {{ .Value }}
+              {{ end }}
+              {{ end }}
 
-  extraEnvFrom:
-    - secretRef:
-        name: alertmanager-smtp
+      - name: 'critical-alerts'
+        email_configs:
+          - to: 'panin.tut@gmail.com'
+            subject: '[CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+            body: |
+              🚨 CRITICAL ALERT 🚨
 
-  persistentVolume:
+              {{ range .Alerts }}
+              Alert: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Severity: {{ .Labels.severity }}
+              Started: {{ .StartsAt }}
+              Labels: {{ range .Labels.SortedPairs }}
+                {{ .Name }}: {{ .Value }}
+              {{ end }}
+              {{ end }}
+
+      - name: 'warning-alerts'
+        email_configs:
+          - to: 'panin.tut@gmail.com'
+            subject: '[WARNING] {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+            body: |
+              ⚠️  WARNING ALERT ⚠️
+
+              {{ range .Alerts }}
+              Alert: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Severity: {{ .Labels.severity }}
+              Started: {{ .StartsAt }}
+              Labels: {{ range .Labels.SortedPairs }}
+                {{ .Name }}: {{ .Value }}
+              {{ end }}
+              {{ end }}
+
+  # Persistence
+  persistence:
     enabled: true
-    size: 1Gi
+    storageClass: ""
+    size: 2Gi
     accessModes:
       - ReadWriteOnce
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    ports:
+      http: 9093
+
+  # Resources
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Environment variables for SMTP credentials
+  extraEnvVars:
+    - name: SMTP_FROM
+      valueFrom:
+        secretKeyRef:
+          name: alertmanager-smtp-secret
+          key: smtp-from
+    - name: SMTP_USER
+      valueFrom:
+        secretKeyRef:
+          name: alertmanager-smtp-secret
+          key: smtp-user
+    - name: SMTP_PASS
+      valueFrom:
+        secretKeyRef:
+          name: alertmanager-smtp-secret
+          key: smtp-pass
+
+## Node Exporter configuration
+nodeExporter:
+  enabled: true
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    ports:
+      http: 9100
+
+  # Resources
+  resources:
+    limits:
+      cpu: 200m
+      memory: 50Mi
+    requests:
+      cpu: 100m
+      memory: 30Mi
+
+  # Host network and PID namespace
+  hostNetwork: true
+  hostPID: true
+
+## Kube State Metrics configuration
+kubeStateMetrics:
+  enabled: true
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    ports:
+      http: 8080
+
+  # Resources
+  resources:
+    limits:
+      cpu: 100m
+      memory: 190Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+## Operator configuration
+operator:
+  enabled: true
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    ports:
+      http: 8080
+
+  # Resources
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+## ServiceMonitor configurations
+serviceMonitor:
+  enabled: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-prometheus
+
+## RBAC
+rbac:
+  create: true
+  pspEnabled: false
+
+## Service Account
+serviceAccount:
+  create: true
+  automountServiceAccountToken: true
+
+## Security Context
+podSecurityContext:
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsNonRoot: true
+
+## Additional scrape configs for custom metrics
+additionalScrapeConfigs:
+  enabled: false
+  configs: []
