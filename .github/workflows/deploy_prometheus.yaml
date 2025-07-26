@@ -17,7 +17,7 @@ env:
   NAMESPACE: monitoring
 
 jobs:
-  deploy:
+  deploy_prometheus:
     runs-on: ubuntu-latest
 
     steps:

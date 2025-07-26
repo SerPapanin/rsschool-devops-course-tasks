@@ -17,7 +17,7 @@ env:
   NAMESPACE: monitoring
 
 jobs:
-  deploy:
+  deploy_grafana:
     runs-on: ubuntu-latest
 
     steps:
@@ -82,6 +82,7 @@ jobs:
           helm repo update
           helm upgrade --install grafana bitnami/grafana \
             --namespace ${{ env.NAMESPACE }} \
+            --kubeconfig kubeconfig \
             --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
             --set persistence.enabled=true \
             --set persistence.size=2Gi \
@@ -90,8 +91,7 @@ jobs:
             --set smtp.user=${{ secrets.AWS_SES_SMTP_USER }} \
             --set smtp.password=${{ secrets.AWS_SES_SMTP_PASSWORD }} \
             --set smtp.fromAddress=${{ vars.FROM_VERIFIED_EMAIL }} \
-            --set smtp.fromName="Grafana Alerts" \
-            --kubeconfig kubeconfig
+            --set smtp.fromName="Grafana Alerts"
 
           kubectl apply -f manifests/ingress_grafana.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
