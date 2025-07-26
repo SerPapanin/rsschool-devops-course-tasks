@@ -28,7 +28,7 @@ prometheus:
               storage: 1Gi
 
   service:
-    nameOverride: "prometheus"
+    name: "prometheus"
     type: ClusterIP
     port: 9090
   ingress:
