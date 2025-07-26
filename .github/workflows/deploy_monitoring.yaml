@@ -1,4 +1,4 @@
-name: "Deployment Prometheus to k3s"
+name: "Deployment Monitoring to k3s"
 on:
   push:
     branches:
@@ -17,7 +17,7 @@ env:
   NAMESPACE: monitoring
 
 jobs:
-  deploy_prometheus:
+  deploy_monitoring:
     runs-on: ubuntu-latest
 
     steps:
@@ -86,13 +86,6 @@ jobs:
             --kubeconfig kubeconfig
           kubectl apply -f manifests/ingress_prometheus.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
-      # Verify Deployment
-      - name: Verify Deployment
-        continue-on-error: false
-        run: |
-          sleep 60
-          kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
-
       # Create ConfigMap for Grafana Datasource
       - name: Create ConfigMap for Grafana Datasource
         run: |
@@ -120,7 +113,7 @@ jobs:
           helm upgrade --install grafana bitnami/grafana \
             --namespace ${{ env.NAMESPACE }} \
             --kubeconfig kubeconfig \
-            --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
+            --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }} \
             --set persistence.enabled=true \
             --set smtp.enabled=true \
             --set smtp.host=email-smtp.${{ vars.AWS_REGION }}.amazonaws.com:587 \
@@ -130,7 +123,15 @@ jobs:
             --set smtp.fromName="Grafana Alerts"
 
           kubectl apply -f manifests/ingress_grafana.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
-      # Step 5: Remove IP from Security Group
+
+      # Verify Deployment
+      - name: Verify Deployment
+        continue-on-error: false
+        run: |
+          sleep 60
+          kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+
+      # Remove IP from Security Group
       - name: Remove IP from Security Group
         continue-on-error: true
         if: steps.add_ip.outcome == 'success' # Run only "add IP" step succeeded
