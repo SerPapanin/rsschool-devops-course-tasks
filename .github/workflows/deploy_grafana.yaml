@@ -85,7 +85,6 @@ jobs:
             --kubeconfig kubeconfig \
             --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
             --set persistence.enabled=true \
-            --set persistence.size=2Gi \
             --set smtp.enabled=true \
             --set smtp.host=email-smtp.${{ vars.AWS_REGION }}.amazonaws.com:587 \
             --set smtp.user=${{ secrets.AWS_SES_SMTP_USER }} \
