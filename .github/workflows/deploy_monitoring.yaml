@@ -1,4 +1,4 @@
-name: "Deployment Grafana to k3s"
+name: "Deployment Prometheus to k3s"
 on:
   push:
     branches:
@@ -17,7 +17,7 @@ env:
   NAMESPACE: monitoring
 
 jobs:
-  deploy_grafana:
+  deploy_prometheus:
     runs-on: ubuntu-latest
 
     steps:
@@ -80,6 +80,43 @@ jobs:
           fi
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
+          helm upgrade --install my-prometheus bitnami/kube-prometheus \
+            --namespace ${{ env.NAMESPACE }} \
+            -f manifests/prometheus-values.yaml \
+            --kubeconfig kubeconfig
+          kubectl apply -f manifests/ingress_prometheus.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+
+      # Verify Deployment
+      - name: Verify Deployment
+        continue-on-error: false
+        run: |
+          sleep 60
+          kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+
+      # Create ConfigMap for Grafana Datasource
+      - name: Create ConfigMap for Grafana Datasource
+        run: |
+          kubectl delete configmap grafana-datasources -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+          kubectl create configmap grafana-datasources --from-literal=prometheus-datasource.json='{
+            "name": "Prometheus",
+            "type": "prometheus",
+            "url": "http://prometheus.${{ env.NAMESPACE }}.svc.cluster.local:9090",
+            "access": "proxy",
+            "basicAuth": false,
+            "withCredentials": false
+          }' -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+      # Deploy Helm Chart
+      - name: Deploy Grafana Helm Chart
+        continue-on-error: false
+        run: |
+          if ! kubectl get namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig > /dev/null 2>&1; then
+            echo "Namespace ${{ env.NAMESPACE }} does not exist. Creating..."
+            kubectl create namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+          else
+            echo "Namespace ${{ env.NAMESPACE }} already exists. Skipping creation."
+          fi
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
           helm upgrade --install grafana bitnami/grafana \
             --namespace ${{ env.NAMESPACE }} \
             --kubeconfig kubeconfig \
@@ -93,14 +130,6 @@ jobs:
             --set smtp.fromName="Grafana Alerts"
 
           kubectl apply -f manifests/ingress_grafana.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
-
-      # Verify Deployment
-      - name: Verify Deployment
-        continue-on-error: false
-        run: |
-          sleep 60
-          kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
-
       # Step 5: Remove IP from Security Group
       - name: Remove IP from Security Group
         continue-on-error: true
