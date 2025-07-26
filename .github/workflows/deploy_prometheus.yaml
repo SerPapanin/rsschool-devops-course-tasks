@@ -82,6 +82,7 @@ jobs:
           helm repo update
           helm upgrade --install my-prometheus bitnami/kube-prometheus \
             --namespace ${{ env.NAMESPACE }} \
+            -f manifests/prometheus-values.yaml \
             --kubeconfig kubeconfig
           kubectl apply -f manifests/ingress_prometheus.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
@@ -91,6 +92,18 @@ jobs:
         run: |
           sleep 60
           kubectl get pods --namespace ${{ env.NAMESPACE }} --kubeconfig kubeconfig
+
+      # Create ConfigMap for Grafana Datasource
+      - name: Create ConfigMap for Grafana Datasource
+        run: |
+          kubectl create configmap grafana-datasources --from-literal=prometheus-datasource.json='{
+            "name": "Prometheus",
+            "type": "prometheus",
+            "url": "http://prometheus.${{ env.NAMESPACE }}.svc.cluster.local:9090",
+            "access": "proxy",
+            "basicAuth": false,
+            "withCredentials": false
+          }' -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
       # Step 5: Remove IP from Security Group
       - name: Remove IP from Security Group

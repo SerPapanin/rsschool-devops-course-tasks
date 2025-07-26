@@ -1,0 +1,92 @@
+kubelet:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    https: true
+    insecureSkipVerify: true
+    interval: 30s
+
+nodeExporter:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+kubeStateMetrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    podMonitorSelector: {}
+    ruleSelector: {}
+    scrapeInterval: 30s
+
+    alertingEndpoints:
+      - name: alertmanager
+        namespace: monitoring
+        port: web
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+
+  service:
+    type: ClusterIP
+    port: 9090
+  ingress:
+    enabled: false
+
+alertmanager:
+  enabled: true
+
+  config:
+    global:
+      smtp_smarthost: "email-smtp.us-east-1.amazonaws.com:587"
+      smtp_from: "{{ .Env.SMTP_FROM }}"
+      smtp_auth_username: "{{ .Env.SMTP_USER }}"
+      smtp_auth_password: "{{ .Env.SMTP_PASS }}"
+    route:
+      receiver: "email"
+    receivers:
+      - name: "email"
+        email_configs:
+          - to: "panin.tut@gmail.com"
+
+  extraEnvFrom:
+    - secretRef:
+        name: alertmanager-smtp
+
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+
+grafana:
+  enabled: true
+
+  admin:
+    existingSecret: grafana-admin-secret
+    userKey: admin-user
+    passwordKey: admin-password
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: false

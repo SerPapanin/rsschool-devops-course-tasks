@@ -78,12 +78,19 @@ jobs:
           else
             echo "Namespace ${{ env.NAMESPACE }} already exists. Skipping creation."
           fi
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
-          helm upgrade --install my-grafana bitnami/grafana \
+          helm upgrade --install my-grafana oci://registry-1.docker.io/bitnamicharts/grafana \
             --namespace ${{ env.NAMESPACE }} \
             --set admin.password=${{ secrets.GRAFANA_ADMIN_PASS }}
+            --set persistence.enabled=true \
+            --set persistence.size=2Gi \
+            --set smtp.enabled=true \
+            --set smtp.host=email-smtp.${{ vars.AWS_REGION }}.amazonaws.com:587 \
+            --set smtp.user=${{ secret.AWS_SES_SMTP_USER }} \
+            --set smtp.password=${{ secret.AWS_SES_SMTP_PASSWORD }} \
+            --set smtp.fromAddress=${{ vars.FROM_VERIFIED_EMAIL }} \
+            --set smtp.fromName="Grafana Alerts" \
             --kubeconfig kubeconfig
+
           kubectl apply -f manifests/ingress_grafana.yaml -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
 
       # Verify Deployment
