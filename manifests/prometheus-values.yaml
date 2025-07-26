@@ -33,71 +33,35 @@ prometheus:
   ingress:
     enabled: false
 
-## Alertmanager configuration
 alertmanager:
   enabled: true
-
-  # Alertmanager configuration
-  configuration: |
+  config:
     global:
-      smtp_smarthost: 'email-smtp.us-east-1.amazonaws.com:587'
-      smtp_from: '{{ .Env.SMTP_FROM }}'
-      smtp_auth_username: '{{ .Env.SMTP_USER }}'
-      smtp_auth_password: '{{ .Env.SMTP_PASS }}'
-      smtp_require_tls: true
-
+      smtp_smarthost: "email-smtp.us-east-1.amazonaws.com:587"
+      smtp_from: "${SMTP_FROM}"
+      smtp_auth_username: "${SMTP_USER}"
+      smtp_auth_password: "${SMTP_PASS}"
     route:
-      group_by: ['alertname', 'cluster', 'service']
-      group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 12h
-      receiver: 'email'
-
+      receiver: email
     receivers:
-      - name: 'email'
+      - name: email
         email_configs:
-          - to: 'panin.tut@gmail.com'
+          - to: "${SMTP_TO}"
 
-  # Persistence
+  extraSecretMounts:
+    - name: alertmanager-smtp-secret
+      mountPath: /etc/alertmanager/secrets
+      secretName: alertmanager-smtp-secret
+      readOnly: true
+
+  extraEnvVarsSecret: alertmanager-smtp-secret
+
   persistence:
     enabled: true
-    storageClass: ""
-    size: 2Gi
+    storageClass: "local-path"
     accessModes:
       - ReadWriteOnce
-
-  # Service configuration
-  service:
-    type: ClusterIP
-    ports:
-      http: 9093
-
-  # Resources
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-
-  # Environment variables for SMTP credentials
-  extraEnvVars:
-    - name: SMTP_FROM
-      valueFrom:
-        secretKeyRef:
-          name: alertmanager-smtp-secret
-          key: smtp-from
-    - name: SMTP_USER
-      valueFrom:
-        secretKeyRef:
-          name: alertmanager-smtp-secret
-          key: smtp-user
-    - name: SMTP_PASS
-      valueFrom:
-        secretKeyRef:
-          name: alertmanager-smtp-secret
-          key: smtp-pass
+    size: 2Gi
 
 ## Node Exporter configuration
 nodeExporter:
