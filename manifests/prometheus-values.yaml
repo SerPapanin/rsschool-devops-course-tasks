@@ -67,26 +67,6 @@ alertmanager:
 
   persistentVolume:
     enabled: true
-    size: 5Gi
+    size: 1Gi
     accessModes:
       - ReadWriteOnce
-
-grafana:
-  enabled: true
-
-  admin:
-    existingSecret: grafana-admin-secret
-    userKey: admin-user
-    passwordKey: admin-password
-
-  persistence:
-    enabled: true
-    size: 5Gi
-    accessModes:
-      - ReadWriteOnce
-
-  service:
-    type: ClusterIP
-    port: 3000
-  ingress:
-    enabled: false
