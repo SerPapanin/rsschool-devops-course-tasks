@@ -34,18 +34,6 @@ prometheus:
   ingress:
     enabled: false
 
-alertmanager:
-  enabled: true
-
-  persistence:
-    enabled: true
-    storageClass: "local-path"
-    accessModes:
-      - ReadWriteOnce
-    size: 2Gi
-  service:
-    nameOverride: "alertmanager"
-
 ## Node Exporter configuration
 nodeExporter:
   enabled: true
