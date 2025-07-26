@@ -96,6 +96,7 @@ jobs:
       # Create ConfigMap for Grafana Datasource
       - name: Create ConfigMap for Grafana Datasource
         run: |
+          kubectl delete configmap grafana-datasources -n ${{ env.NAMESPACE }} --kubeconfig kubeconfig
           kubectl create configmap grafana-datasources --from-literal=prometheus-datasource.json='{
             "name": "Prometheus",
             "type": "prometheus",
