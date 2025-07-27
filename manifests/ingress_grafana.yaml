@@ -1,20 +1,20 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: jenkins-ingress
-  namespace: jenkins
+  name: grafana-ingress
+  namespace: monitoring
   annotations:
     # Required for Traefik Ingress Controller
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-    - host: jenkins.panin.lab # Replace with your domain or public IP
+    - host: grafana.panin.lab
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: my-jenkins
+                name: grafana
                 port:
-                  number: 8080
+                  number: 3000
